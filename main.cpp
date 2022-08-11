@@ -50,7 +50,7 @@ int main(void)
 			exit(1);
 		}
 		recv(accept_fd, buffer, 30000, 0);
-		Http http(buffer); //TODO: в разработке
+		// Http http(buffer); //TODO: в разработке
 		std::cout << buffer << std::endl; //вывод полученного сообщения от сервера
 		const char *message = "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 88\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>CLOSE IT NOW!!!</h1>\r\n</body>\r\n</html>";
 		send(accept_fd, message, strlen(message), 0);
