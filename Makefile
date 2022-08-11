@@ -1,6 +1,8 @@
 NAME = run
 
-SRCS = main.cpp Http.cpp
+VPATH = Http/
+
+SRCS = main.cpp Http.cpp Request.cpp Response.cpp
 
 OBJS_DIR = obj
 
