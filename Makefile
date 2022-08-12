@@ -8,15 +8,15 @@ OBJS_DIR = obj
 
 OBJS = $(patsubst %.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -g #-Wall -Wextra -Werror
 
 all: $(NAME)
 
 $(NAME) : $(OBJS)
-	$(CXX) $(OBJS) -o $(NAME)
+	$(CXX) $(CFLAGS) $(OBJS) -o $(NAME)
 
 $(OBJS_DIR)/%.o : %.cpp $(OBJS_DIR)
-	$(CXX) -c $< -o $@
+	$(CXX) $(CFLAGS) -c $< -o $@
 
 $(OBJS_DIR):
 	mkdir -p $@
