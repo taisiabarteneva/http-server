@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #define LOCALHOST "127.0.0.1"
 
 #include "Http/Http.hpp"
@@ -19,7 +20,7 @@ int main(void)
 	int socket_fd, err, accept_fd;
 
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(8000);
+	serv_addr.sin_port = htons(80);
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd == -1)
@@ -39,6 +40,9 @@ int main(void)
 		std::cerr << "Listening failure" << std::endl;
 		exit(1);
 	}
+	int fd = open("resources/22.png", O_RDWR);
+    char bufer[160038];
+    err = read(fd, bufer, 160038);
 	while (1) 
 	{
 		std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl; // здесь цикл
@@ -52,8 +56,9 @@ int main(void)
 		recv(accept_fd, buffer, 30000, 0);
 		// Http http(buffer); //TODO: в разработке
 		std::cout << buffer << std::endl; //вывод полученного сообщения от сервера
-		const char *message = "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 88\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>CLOSE IT NOW!!!</h1>\r\n</body>\r\n</html>";
+		const char *message = "HTTP/1.1 200 OK\r\nContent-Length: 160038\r\nContent-Type: image/png\r\nConnection: Closed\r\n\r\n";
 		send(accept_fd, message, strlen(message), 0);
+		send(accept_fd, bufer, 160038, 0);
 		close(accept_fd);
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	}

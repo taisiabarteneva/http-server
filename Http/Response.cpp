@@ -1,8 +1,7 @@
 #include "Response.hpp"
 
-Response::Response(Request request)
+Response::Response()
 {
-    version = request.getVersion();
 
 }
 
@@ -36,3 +35,25 @@ std::string Response::responseToString()
     ret += body;// TODO: body отдельно отправляется
     return ret;
 }
+
+void    Response::setVersion(std::string& version)
+{
+    this->version = version;
+}
+void    Response::setCode(std::string &code)
+{
+    this->code = code;
+}
+void    Response::setStatus(std::string &status)
+{
+    this->status = status;
+}
+void    Response::setHeader(std::string key, std::string value)
+{
+    this->headers.insert(std::make_pair(key, value));
+}
+void    Response::setBody(std::string body)
+{
+    this->body = body;
+}
+

@@ -14,6 +14,7 @@ private:
     std::string body;
 
     std::string getHeaderStrings();
+    void codeStringToInt();
     
 
 public:
@@ -29,10 +30,14 @@ public:
     const static int BAD_GATEWAY = 502;
     const static int SERVICE_UNAVAILABLE = 503;// TODO: дополнить/исправить
 
-    Response(Request request);
+    Response();
     ~Response();
     std::string responseToString();
-
+    void setVersion(std::string& version);
+    void setCode(std::string &code);
+    void setStatus(std::string &status);
+    void setHeader(std::string key, std::string value);
+    void setBody(std::string body);
 };
 
 #endif
