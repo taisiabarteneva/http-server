@@ -5,7 +5,7 @@ enum ConfigModules {
 	SERVER,
 	LISTEN,
 	SERVER_NAME,
-	ACCEPTED_METHODS,
+	ALLOW_METHODS,
 	ROOT,
 	CLIENT_MAX_BODY_SIZE,
 	AUTOINDEX,
@@ -23,7 +23,7 @@ struct ConfigFlags {
 	bool    check_server;
 	bool    check_listen;
 	bool    check_server_name;
-	bool    check_accepted_methods;
+	bool    check_allow_methods;
 	bool    check_root;
 	bool    check_max_body_size;
 	bool    check_root_location;
@@ -31,11 +31,13 @@ struct ConfigFlags {
 	bool    check_autoindex;
 	bool    check_index;
 	bool    check_all_read;
+    bool    is_opening_bracket;
+    bool    check_local_root;
 
-	bool    isAuth;
-	bool    isCgiPath;
-	bool    isCgiExtension;
-	bool	isExt;
+//	bool    isAuth;
+//	bool    isCgiPath;
+//	bool    isCgiExtension;
+//	bool	isExt;
 };
 
 

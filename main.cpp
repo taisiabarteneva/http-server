@@ -12,8 +12,9 @@
 #define LOCALHOST "127.0.0.1"
 
 #include "Http/Http.hpp"
+#include "ConfigFile/config_file.hpp"
 
-int main(void)
+int main(int argc, char** argv)
 {
 	struct sockaddr_in serv_addr = {0};
 	char buffer[30000];
@@ -43,7 +44,7 @@ int main(void)
 	int fd = open("resources/22.png", O_RDWR);
     char bufer[160038];
     err = read(fd, bufer, 160038);
-	while (1) 
+	while (1)
 	{
 		std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl; // здесь цикл
 		int addrlen = sizeof(serv_addr);
@@ -133,5 +134,8 @@ int main(void)
 	// 	std::cerr << "Bad read" << std::endl;
 	// }
 	// close(fd);
+
+//    ConfigFile cfg;
+//    cfg.openConfigFile(argv[1]);
 
 }

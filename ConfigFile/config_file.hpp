@@ -22,16 +22,17 @@ public:
 	ConfigFile(const ConfigFile& file);
 	ConfigFile& operator=(const ConfigFile& file);
 
-	void    setDefaultConfigValues();
-	void    setConfigModules();
-	void    openConfigFile(const string& file);
-	void    parsingConfigFile(const string& file);
-	vector<string>    getTokens(string& str, char sep);
+	void            setDefaultConfigValues();
+	void            setConfigModules();
+	void            openConfigFile(const string& file);
+	void            parsingConfigFile(const string& file);
+	vector<string>  getTokens(string& str);
+    void            parsingLocation(vector<string>& words, const string& first);
 
 	bool    checkIsServer(ConfigFlags& flags, vector<string>& words);
 	bool    checkIsListen(ConfigFlags& flags, vector<string>& words);
 	bool    checkIsServerName(ConfigFlags &flags, vector<string> &words);
-	bool	checkAcceptedMethods(ConfigFlags &flags, vector<string> &words);
+	bool	checkAllowMethods(ConfigFlags &flags, vector<string> &words);
 	bool    checkRoot(ConfigFlags &flags, vector<string> &words);
 	bool    checkClientMaxBodySize(ConfigFlags &flags, vector<string> &words);
 	bool    checkIsLocation(ConfigFlags &flags, vector<string> &words);

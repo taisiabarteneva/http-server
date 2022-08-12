@@ -13,7 +13,7 @@ ConfigFile::ConfigFile() {
 void ConfigFile::setDefaultConfigValues() {
 	config_file["listen"] = "127.0.0.1:8080";
 	config_file["server_name"] = "";
-	config_file["accepted_methods"] = "";
+	config_file["allow_methods"] = "";
 	config_file["client_max_body_size"] = "";
 	config_file["root"] = "";
 	config_file["autoindex"] = "off";
@@ -27,7 +27,7 @@ void ConfigFile::setConfigModules() {
 	modules["server"] = SERVER;
 	modules["listen"] = LISTEN;
 	modules["server_name"] = SERVER_NAME;
-	modules["accepted_methods"] = ACCEPTED_METHODS;
+	modules["allow_methods"] = ALLOW_METHODS;
 	modules["client_max_body_size"] = CLIENT_MAX_BODY_SIZE;
 	modules["root"] = ROOT;
 	modules["autoindex"] = AUTOINDEX;
@@ -92,7 +92,8 @@ bool    ConfigFile::checkIsListen(ConfigFlags& flags, vector<string>& words) {
 		}
 
 		string tmp_listen = words[1].substr(0, words[1].length() - 1);
-		if (find(words.begin(), words.end(), tmp_listen) == words.end())
+//        cout << tmp_listen << endl;
+		if (find(all_listen.begin(), all_listen.end(), tmp_listen) != all_listen.end())
 		{
 			cout << "5" << endl;
 			exit(EXIT_FAILURE);
@@ -124,16 +125,16 @@ bool    ConfigFile::checkIsServerName(ConfigFlags &flags, vector<string> &words)
 	exit(EXIT_FAILURE);
 }
 
-bool    ConfigFile::checkAcceptedMethods(ConfigFlags &flags, vector<string> &words) {
+bool    ConfigFile::checkAllowMethods(ConfigFlags &flags, vector<string> &words) {
 	if (flags.check_server && words.size() == 2) {
-		if (flags.check_accepted_methods)
+		if (flags.check_allow_methods)
 		{
 			cout << "9" << endl;
 			exit(EXIT_FAILURE);
 		}
 
-		flags.check_accepted_methods = true;
-		config_file["accepted_methods"] = words[1].substr(0, words[1].find(';') - 1);
+		flags.check_allow_methods = true;
+		config_file["allow_methods"] = words[1].substr(0, words[1].find(';') - 1);
 		return true;
 	}
 	cout << "10" << endl;
@@ -142,6 +143,7 @@ bool    ConfigFile::checkAcceptedMethods(ConfigFlags &flags, vector<string> &wor
 
 bool ConfigFile::checkRoot(ConfigFlags &flags, vector<string> &words) {
 	if (flags.check_server && words.size() == 2) {
+
 		if (flags.check_root)
 		{
 			cout << "11" << endl;
@@ -177,9 +179,7 @@ bool    ConfigFile::checkIsLocation(ConfigFlags &flags, vector<string> &words) {
 		if (words[1] == "/")
 			flags.check_root_location = true;
 		flags.check_location = true;
-
-//		parseLocation(); // спарсить локацию
-
+        flags.is_opening_bracket = true;
 		return true;
 	}
 	cout << "15" << endl;
@@ -235,12 +235,22 @@ bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words) 
 
 bool    ConfigFile::checkClosingBracket(ConfigFlags &flags, vector<string> &words) {
 	if (flags.check_server && flags.check_listen && words.size() == 1) {
+        if (flags.is_opening_bracket)
+        {
+            flags.is_opening_bracket = false;
+            flags.check_local_root = false;
+            flags.check_allow_methods = false;
+            flags.check_autoindex = false;
+            flags.check_index = false;
+            return true;
+        }
 		flags.check_server = false;
 		flags.check_all_read = true;
 		flags.check_root_location = false;
 		// здесь еще что-то будет
 		config_file.clear();
 		setDefaultConfigValues();
+        memset(&flags, 0, sizeof(ConfigFlags));
 		return true;
 	}
 	cout << "22" << endl;
@@ -254,11 +264,12 @@ void ConfigFile::parsingConfigFile(const string &file) {
 
 	memset(&utils_flags, 0, sizeof(ConfigFlags));
 	while (getline(file_fd, file_str, '\n')) {
-		str_words = getTokens(file_str, ' ');
+		str_words = getTokens(file_str);
 
-		for (int i = 0; i < str_words.size(); ++i) {
-			cout << str_words[i] << " ";
-		}
+        for (int i = 0; i < str_words.size(); ++i) {
+            cout << "<" << str_words[i] << ">" << " ";
+        }
+        cout << endl;
 
 //		cout << file_str << endl;
 //		list<string>::iterator it = str_words.begin();
@@ -271,15 +282,21 @@ void ConfigFile::parsingConfigFile(const string &file) {
 		if (str_words.size() == 0 || str_words[0][0] == '#')
 		{
 			str_words.clear();
-			cout << endl;
 			continue;
 		}
-
-		try {
-			modules.at(str_words[0]);
-		} catch (out_of_range &e) {
-			modules[str_words[0]] = DEFAULT;
-		}
+        else if (utils_flags.is_opening_bracket && str_words[0] != "}")
+        {
+            parsingLocation(str_words, str_words[0]);
+            continue;
+        }
+        else
+        {
+            try {
+                modules.at(str_words[0]);
+            } catch (out_of_range &e) {
+                modules[str_words[0]] = DEFAULT;
+            }
+        }
 
 		switch (modules[str_words[0]]) {
 			case SERVER:
@@ -291,8 +308,8 @@ void ConfigFile::parsingConfigFile(const string &file) {
 			case SERVER_NAME:
 				checkIsServerName(utils_flags, str_words);
 				break;
-			case ACCEPTED_METHODS:
-				checkAcceptedMethods(utils_flags, str_words);
+			case ALLOW_METHODS:
+				checkAllowMethods(utils_flags, str_words);
 				break;
 			case ROOT:
 				checkRoot(utils_flags, str_words);
@@ -328,8 +345,9 @@ void ConfigFile::parsingConfigFile(const string &file) {
 		}
 
 		str_words.clear();
-		cout << endl;
 	}
+
+//    cout << "yeeeee all parsed" << endl;
 
 	if (utils_flags.check_server && (!utils_flags.check_all_read
 		                                 || !utils_flags.check_server_name || !utils_flags.check_location))
@@ -339,21 +357,69 @@ void ConfigFile::parsingConfigFile(const string &file) {
 	}
 }
 
-vector<string> ConfigFile::getTokens(string &str, char sep) {
+vector<string> ConfigFile::getTokens(string &str) {
 	vector<string>	words;
 	size_t          i = 0;
-	size_t          j = 0;
+	size_t          j;
 
 	while (str[i]) {
-		while (str[i] && str[i] == sep)
+		while (str[i] && isspace(str[i]))
 			++i;
 		j = i;
-		while (str[i] && str[i] != sep)
+		while (str[i] && !isspace(str[i]))
 			++i;
 		string word = str.substr(j, i - j);
 		words.push_back(word);
-		j = i;
 	}
-	words.push_back(str.substr(j, i - j));
 	return (words);
+}
+
+void    ConfigFile::parsingLocation(vector<string>& words, const string& first) {
+    ConfigFlags loc_utils_flags;
+    memset(&loc_utils_flags, 0, sizeof(ConfigFlags));
+    loc_utils_flags.check_server = true;
+    loc_utils_flags.check_listen = true;
+
+//    while (begin != words.end()) {
+//
+//        cout << *begin << " ";
+//        begin++;
+//    }
+//    cout << endl;
+
+    if (words.size() == 0 || words[0][0] == '#')
+        return ;
+
+    switch (modules[words[0]]) {
+        case ALLOW_METHODS:
+            cout << "here" << endl;
+            checkAllowMethods(loc_utils_flags, words);
+            break;
+        case ROOT:
+//                checkRoot(utils_flags, str_words);
+            break;
+        case CLIENT_MAX_BODY_SIZE:
+//                checkClientMaxBodySize(utils_flags, str_words);
+            break;
+        case AUTOINDEX:
+//                checkIsAutoindex(utils_flags, str_words);
+            break;
+        case INDEX:
+//                checkIsIndex(utils_flags, str_words);
+            break;
+        case ERROR_PAGE:
+//                checkIsErrorPage(utils_flags, str_words);
+            break;
+        case CGI_EXT:
+            break;
+        case CGI_PATH:
+            break;
+        case AUTHENTICATION:
+            break;
+        default:
+//                cout << str_words[0] << endl;
+            cout << "Config_file is invalid" << endl;
+            exit(EXIT_FAILURE);
+    }
+
 }
