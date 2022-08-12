@@ -54,11 +54,15 @@ int main(void)
 			exit(1);
 		}
 		recv(accept_fd, buffer, 30000, 0);
-		// Http http(buffer); //TODO: в разработке
-		std::cout << buffer << std::endl; //вывод полученного сообщения от сервера
+		Http http(buffer); //TODO: в разработке TODO: здесь валится на повторном заходе при чтении файла
+		// std::cout << buffer << std::endl; //вывод полученного сообщения от сервера
 		const char *message = "HTTP/1.1 200 OK\r\nContent-Length: 160038\r\nContent-Type: image/png\r\nConnection: Closed\r\n\r\n";
 		send(accept_fd, message, strlen(message), 0);
-		send(accept_fd, bufer, 160038, 0);
+		while (!http.isEndOfFile())
+		{
+			char* mg = http.recieveFile("resources/22.png");
+			send(accept_fd, mg, 2000, 0);
+		}
 		close(accept_fd);
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	}

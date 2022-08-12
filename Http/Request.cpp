@@ -15,7 +15,7 @@ void Request::recieveHeaders(std::string& message)
         header = message.substr(0, endOfLine);
         pos = header.find(": ");
         tmp_key = header.substr(0, pos);
-        tmp_value = header.substr(pos + 2, header.size());
+        tmp_value = header.substr(pos + 2, header.size());//TODO: здесь завалился при чтении файла
         vec_header = std::make_pair(tmp_key, tmp_value);
         headers.insert(vec_header);
         message.erase(0, endOfLine + 2);
