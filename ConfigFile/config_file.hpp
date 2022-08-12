@@ -10,13 +10,8 @@
 #include <list>
 #include <vector>
 #include "config_utils.hpp"
-//# include "Loc.hpp"
-//# include "Server.hpp"
 
 using namespace std;
-
-class Req;
-class Server;
 
 class ConfigFile {
 
@@ -26,17 +21,6 @@ public:
 	~ConfigFile();
 	ConfigFile(const ConfigFile& file);
 	ConfigFile& operator=(const ConfigFile& file);
-
-//	bool	checkRepeatListen(const string& listen);
-//	void	clearLists(bool isServerToo);
-//	void	parsing(const string& configFile);
-//	void	validExtensionConfigFile(const string& configFile);
-//	void	processParsingConfigFile();
-//	void	parseLocation(const string& location,
-//	                      vector<string>::iterator& begin,
-//	                      vector<string>::iterator& end);
-
-//	vector<Server>	getServers() const;
 
 	void    setDefaultConfigValues();
 	void    setConfigModules();
