@@ -26,14 +26,16 @@ private:
     Method stringToMethod(std::string method);
     std::string recieveStartLine(std::string& message, char delimiter);
     void recieveHeaders(std::string& message);
+    std::string getStartLineString();
 public:
     Request(std::string message);
     ~Request();
-    Method const getMethod() const;
-    std::string const getURI() const;
-    std::string const getVersion() const;
-    std::map<std::string, std::string> const getHeaders() const;
-    std::string const getBody() const;
+    Method getMethod() const;
+    std::string getURI() const;
+    std::string getVersion() const;
+    std::map<std::string, std::string> getHeaders() const;
+    std::string getBody() const;
+    std::string toString();
 
     
 

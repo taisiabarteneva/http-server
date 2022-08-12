@@ -12,11 +12,13 @@ class Http
 private:
     Request* request;
     Response* response;
+    
 
 public:
     Http(std::string request);
     ~Http();
-    std::string toString(Http http);
+    std::string getResponse() const;
+    std::string getRequest() const;
     // Http createResponce();
 };
 
