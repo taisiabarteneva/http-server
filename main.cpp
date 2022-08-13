@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	int socket_fd, err, accept_fd;
 
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(80);
+	serv_addr.sin_port = htons(80); // USE PORT 8081 IN CASE OF ERROR
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd == -1)
@@ -29,6 +29,19 @@ int main(int argc, char** argv)
 		std::cerr << "Socket failure" << std::endl;
 		exit(1);
 	}
+	const int enable = 1;
+	/* REUSING SOCKET AFTER SIGINT */
+	err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+	if (err < 0)
+	{
+		std::cerr << "Set socket options failure" << errno << std::endl;
+	}
+	err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
+	if (err < 0)
+	{
+		std::cerr << "Set socket options failure" << errno << std::endl;
+	}
+	/* */
 	err = bind(socket_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
 	if (err < 0)
 	{
@@ -46,7 +59,7 @@ int main(int argc, char** argv)
     err = read(fd, bufer, 160038);
 	while (1)
 	{
-		std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl; // здесь цикл
+		std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl;
 		int addrlen = sizeof(serv_addr);
 		accept_fd = accept(socket_fd, (struct sockaddr *)&serv_addr, (socklen_t *)&addrlen);
 		if (accept_fd < 0)
@@ -55,20 +68,32 @@ int main(int argc, char** argv)
 			exit(1);
 		}
 		recv(accept_fd, buffer, 30000, 0);
-		Http http(buffer); //TODO: в разработке TODO: здесь валится на повторном заходе при чтении файла
-		// std::cout << buffer << std::endl; //вывод полученного сообщения от сервера
-		const char *message = "HTTP/1.1 200 OK\r\nContent-Length: 160038\r\nContent-Type: image/png\r\nConnection: Closed\r\n\r\n";
+		Http http(buffer); //TODO: в разработке
+		std::cout << http.getResponseHeader() << std::endl;
+		const char *message;
+		message = http.getResponseHeader().c_str();
 		send(accept_fd, message, strlen(message), 0);
 		while (!http.isEndOfFile())
 		{
-			char* mg = http.recieveFile("resources/22.png");
-			send(accept_fd, mg, 2000, 0);
+			send(accept_fd, http.fileBuffer, http.getBytes(), 0);
+			http.recieveDataFromFile();
 		}
 		close(accept_fd);
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	}
 
 	close(socket_fd);
+	
+
+	/* REQUEST TEMPLATE */
+	// std::string buff = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\nsec-ch-ua:  Not A;Brand;v=99, Chromium;v=100, Google Chrome;v=100\r\nsec-ch-ua-mobile: ?0sec-ch-ua-platform: macOS\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-User: ?1\r\nSec-Fetch-Dest: document\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\r\n";
+	/*		*/
+
+	/* RESPONSE TEMPLATE */
+	// const char *message = "HTTP/1.1 200 OK\r\nContent-Length: 160038\r\nContent-Type: image/png\r\nConnection: Closed\r\n\r\n";
+	/*		*/
+	
+	
 	/* TEST
 	char ip[INET_ADDRSTRLEN];
 	std::cout << inet_ntop(AF_INET, &(serv_addr.sin_addr), ip, INET_ADDRSTRLEN) << std::endl;

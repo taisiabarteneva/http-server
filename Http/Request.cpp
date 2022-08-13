@@ -14,8 +14,10 @@ void Request::recieveHeaders(std::string& message)
         endOfLine = message.find("\r\n");
         header = message.substr(0, endOfLine);
         pos = header.find(": ");
+        if (pos == std::string::npos) //TODO: костыль
+            break ;
         tmp_key = header.substr(0, pos);
-        tmp_value = header.substr(pos + 2, header.size());//TODO: здесь завалился при чтении файла
+        tmp_value = header.substr(pos + 2, header.size());
         vec_header = std::make_pair(tmp_key, tmp_value);
         headers.insert(vec_header);
         message.erase(0, endOfLine + 2);
@@ -32,22 +34,10 @@ std::string Request::recieveStartLine(std::string& message, char delimiter)
 
 Request::Request(std::string message)
 {
-    // std::cout << message << std::endl;
     method = stringToMethod(recieveStartLine(message, ' '));
     target = recieveStartLine(message, ' ');
     version = recieveStartLine(message, '\n') + "\n";
-    // std::cout << message << std::endl;
     recieveHeaders(message);
-    // std::cout << message << std::endl;
-    // std::cout << methodToString(method) << std::endl;
-    // std::cout << target << std::endl;
-    // std::cout << version << std::endl;
-    // std::cout << "\nHeader:\n" << std::endl;
-    // for(std::pair<std::string, std::string> s : headers) // TODO:: debug
-    // {
-    //     std::cout << s.first << ": " << s.second << std::endl;
-    // }
-    // std::cout << message << std::endl;
 }
 
 Request::~Request()
@@ -133,4 +123,4 @@ Request::Method Request::stringToMethod(std::string method)
     return FAIL;
 }
 
-const std::string Request::HTTP_VERSION = "HTTP/1.1"; //TODO: убрать 
+// const std::string Request::HTTP_VERSION = "HTTP/1.1"; //TODO: убрать 

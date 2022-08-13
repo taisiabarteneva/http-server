@@ -1,43 +1,51 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
+# define RESPONSE_VERSION "HTTP/1.1"
+
+# include <sstream>
 # include "Request.hpp"
+
+enum StartLine {
+    VERSION,
+    CODE,
+    STATUS
+};
 
 class Response
 {
 private:
-    int responseCode;
-    std::string version;
-    std::string code;
-    std::string status;
-    std::map <std::string, std::string> headers;
-    std::string body;
+    int responseCode; //TODO: а нужен?
+    std::map<StartLine, std::string> startLine;
+    std::map<std::string, std::string> headers;
+    char* body;
+    std::string fileSize;
+    std::string fileType;
+    std::ostringstream stream;
 
     std::string getHeaderStrings();
     void codeStringToInt();
+    void initStatusCodes();
     
 
 public:
-    const static int OK = 200;
-    const static int CREATED = 201;
-    const static int ACCEPTED = 202;
-    const static int NO_CONTENT = 203;
-    const static int BAD_REQUEST = 400;
-    const static int FORBIDDEN = 403;
-    const static int NOT_FOUND = 404;
-    const static int REQUEST_TIMEOUT = 408;
-    const static int INTERNAL_SERVER_ERROR = 500;
-    const static int BAD_GATEWAY = 502;
-    const static int SERVICE_UNAVAILABLE = 503;// TODO: дополнить/исправить
+    std::map<int, std::string> statusCodes;
 
     Response();
     ~Response();
     std::string responseToString();
+    std::string responseHeaderToString();
+    std::string responseBodyToString();
     void setVersion(std::string& version);
-    void setCode(std::string &code);
+    void setCode(std::string code);
     void setStatus(std::string &status);
     void setHeader(std::string key, std::string value);
-    void setBody(std::string body);
+    void setBody(char* body);
+    void setFileSize(int size);
+    void setFileType(std::string type);
+    char* getBody() const;
+    std::string getFileSize() const;
+    std::string getFileType() const;
 };
 
 #endif

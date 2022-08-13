@@ -15,22 +15,24 @@ private:
     Request* request;
     Response* response;
     std::ifstream reader;
-    char fileBuffer[BUFFER_SIZE];
     std::streamsize bytes;
+    std::string fileName;
     //config file;
 public: //TODO: debug. delete
-    char* recieveFile(std::string fileName);
+    void recieveDataFromFile();
+    void prepareResponse(std::string root);
 
 public:
+    char fileBuffer[BUFFER_SIZE];
     Http(std::string request);
     ~Http();
     std::string getResponse() const;
     std::string getRequest() const;
+    std::string getResponseHeader() const;
+    std::string getResponseBody() const;
     // Http createResponce();
     std::streamsize getBytes() const;
     bool isEndOfFile();
-
-    
 };
 
 
