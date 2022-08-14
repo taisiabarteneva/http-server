@@ -3,24 +3,28 @@
 #include <cstring>
 #include <vector>
 
+
 using namespace std;
 
 ConfigFile::ConfigFile() {
-	setDefaultConfigValues();
+	setDefaultConfigValues(config_file);
 	setConfigModules();
+
+    cgi_extension.push_back("cgi");
+    cgi_extension.push_back("php");
 }
 
-void ConfigFile::setDefaultConfigValues() {
-	config_file["listen"] = "127.0.0.1:8080";
-	config_file["server_name"] = "";
-	config_file["allow_methods"] = "";
-	config_file["client_max_body_size"] = "";
-	config_file["root"] = "";
-	config_file["autoindex"] = "off";
-	config_file["index"] = "";
-	config_file["cgi_ext"] = "";
-	config_file["cgi_path"] = "";
-	config_file["authentication"] = "";
+void ConfigFile::setDefaultConfigValues(map<string, string>& config) {
+    config["listen"] = "127.0.0.1:8080";
+	config["server_name"] = "";
+	config["allow_methods"] = "";
+	config["client_max_body_size"] = "10M";
+	config["root"] = "";
+	config["autoindex"] = "off";
+	config["index"] = "";
+	config["cgi_path"] = "";
+    config["cgi_extension"] = "";
+//	config["authentication"] = "";
 }
 
 void ConfigFile::setConfigModules() {
@@ -50,8 +54,8 @@ ConfigFile& ConfigFile::operator=(const ConfigFile& cfg) {
 	if (this != &cfg) {
 		config_file = cfg.config_file;
 		all_listen = cfg.all_listen;
-//		locationList = file.locationList;
-//		locationListExt = file.locationListExt;
+		all_locations = cfg.all_locations;
+//		locationListExt = file.locationListExt; // cgi
 	}
 	return (*this);
 }
@@ -125,7 +129,7 @@ bool    ConfigFile::checkIsServerName(ConfigFlags &flags, vector<string> &words)
 	exit(EXIT_FAILURE);
 }
 
-bool    ConfigFile::checkAllowMethods(ConfigFlags &flags, vector<string> &words) {
+bool    ConfigFile::checkAllowMethods(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
 	if (flags.check_server && words.size() == 2) {
 		if (flags.check_allow_methods)
 		{
@@ -134,14 +138,14 @@ bool    ConfigFile::checkAllowMethods(ConfigFlags &flags, vector<string> &words)
 		}
 
 		flags.check_allow_methods = true;
-		config_file["allow_methods"] = words[1].substr(0, words[1].find(';') - 1);
+		config["allow_methods"] = words[1].substr(0, words[1].find(';') - 1);
 		return true;
 	}
 	cout << "10" << endl;
 	exit(EXIT_FAILURE);
 }
 
-bool ConfigFile::checkRoot(ConfigFlags &flags, vector<string> &words) {
+bool ConfigFile::checkRoot(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
 	if (flags.check_server && words.size() == 2) {
 
 		if (flags.check_root)
@@ -151,14 +155,14 @@ bool ConfigFile::checkRoot(ConfigFlags &flags, vector<string> &words) {
 		}
 
 		flags.check_root = true;
-		config_file["root"] = words[1].substr(0, words[1].find(';') - 1);
+		config["root"] = words[1].substr(0, words[1].find(';') - 1);
 		return true;
 	}
 	cout << "12" << endl;
 	exit(EXIT_FAILURE);
 }
 
-bool ConfigFile::checkClientMaxBodySize(ConfigFlags &flags, vector<string> &words) {
+bool ConfigFile::checkClientMaxBodySize(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
 	if (flags.check_server && words.size() == 2) {
 		if (flags.check_max_body_size)
 		{
@@ -167,7 +171,7 @@ bool ConfigFile::checkClientMaxBodySize(ConfigFlags &flags, vector<string> &word
 		}
 
 		flags.check_max_body_size = true;
-		config_file["client_max_body_size"] = words[1].substr(0, words[1].find(';') - 1);
+		config["client_max_body_size"] = words[1].substr(0, words[1].find(';') - 1);
 		return true;
 	}
 	cout << "14" << endl;
@@ -186,7 +190,7 @@ bool    ConfigFile::checkIsLocation(ConfigFlags &flags, vector<string> &words) {
 	exit(EXIT_FAILURE);
 }
 
-bool    ConfigFile::checkIsAutoindex(ConfigFlags &flags, vector<string> &words) {
+bool    ConfigFile::checkIsAutoindex(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
 	if (flags.check_server && words.size() == 2) {
 		if (flags.check_autoindex)
 		{
@@ -195,14 +199,14 @@ bool    ConfigFile::checkIsAutoindex(ConfigFlags &flags, vector<string> &words) 
 		}
 
 		flags.check_autoindex = true;
-		config_file["autoindex"] = words[1].substr(0, words[1].find(';') - 1);
+		config["autoindex"] = words[1].substr(0, words[1].find(';') - 1);
 		return true;
 	}
 	cout << "17" << endl;
 	exit(EXIT_FAILURE);
 }
 
-bool    ConfigFile::checkIsIndex(ConfigFlags &flags, vector<string> &words) {
+bool    ConfigFile::checkIsIndex(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
 	if (flags.check_server && words.size() == 2) {
 		if (flags.check_index)
 		{
@@ -211,14 +215,14 @@ bool    ConfigFile::checkIsIndex(ConfigFlags &flags, vector<string> &words) {
 		}
 
 		flags.check_index = true;
-		config_file["index"] = words[1].substr(0, words[1].find(';') - 1);
+		config["index"] = words[1].substr(0, words[1].find(';') - 1);
 		return true;
 	}
 	cout << "19" << endl;
 	exit(EXIT_FAILURE);
 }
 
-bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words) {
+bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
 	if (flags.check_server && words.size() == 3) { // error_page code html
 		if (config_file.count(words[1]) == 1)
 		{
@@ -226,7 +230,7 @@ bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words) 
 			exit(EXIT_FAILURE);
 		}
 
-		config_file[words[1]] = words[2].substr(0, words[2].find(';') - 1);
+		config[words[1]] = words[2].substr(0, words[2].find(';') - 1);
 		return true;
 	}
 	cout << "21" << endl;
@@ -235,21 +239,15 @@ bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words) 
 
 bool    ConfigFile::checkClosingBracket(ConfigFlags &flags, vector<string> &words) {
 	if (flags.check_server && flags.check_listen && words.size() == 1) {
-        if (flags.is_opening_bracket)
-        {
-            flags.is_opening_bracket = false;
-            flags.check_local_root = false;
-            flags.check_allow_methods = false;
-            flags.check_autoindex = false;
-            flags.check_index = false;
-            return true;
-        }
 		flags.check_server = false;
 		flags.check_all_read = true;
 		flags.check_root_location = false;
-		// здесь еще что-то будет
+
+        Server server = createNewServer(all_listen.back(), all_locations);
+        all_servers.push_back(server);
+
 		config_file.clear();
-		setDefaultConfigValues();
+		setDefaultConfigValues(config_file);
         memset(&flags, 0, sizeof(ConfigFlags));
 		return true;
 	}
@@ -257,12 +255,84 @@ bool    ConfigFile::checkClosingBracket(ConfigFlags &flags, vector<string> &word
 	exit(EXIT_FAILURE);
 }
 
+Server ConfigFile::createNewServer(string ip_port, vector<Location>& locations) {
+    Server server = Server(ip_port, locations);
+    return server;
+}
+
+Location ConfigFile::createNewLocation(map<string, string>& config) {
+    Location loc = Location(config);
+    return loc;
+}
+
+bool ConfigFile::checkLocationClosingBracket(ConfigFlags &loc_flags, vector<string> &words,
+                                             map<string, string>& config, ConfigFlags& flags) {
+    if (loc_flags.check_server && words.size() == 1) {
+        loc_flags.check_all_read = true;
+        memset(&loc_flags, 0, sizeof(ConfigFlags));
+        loc_flags.check_server = true;
+        loc_flags.check_listen = true;
+        flags.is_opening_bracket = false;
+
+        Location loc = createNewLocation(config);
+        all_locations.push_back(loc);
+
+        config.clear();
+        words.clear();
+        return true;
+    }
+    cout << "25" << endl;
+    exit(EXIT_FAILURE);
+}
+
+string    ConfigFile::checkMaintainCgiExtension(ConfigFlags &flags, string word, map<string, string>& config) {
+    vector<string>::iterator it = cgi_extension.begin();
+    if (word.find('.') == string::npos) {
+        cout << "28" << endl;
+        cout << "Invalid cgi extension" << endl;
+        exit(EXIT_FAILURE);
+    }
+    string ext = word.substr(word.find('.') + 1, word.find(';') - word.find('.') - 1);
+    while (it != cgi_extension.end()) {
+        if (*it == ext)
+            return ext;
+        ++it;
+    }
+    cout << "29" << endl;
+    cout << "Invalid cgi extension" << endl;
+    exit(EXIT_FAILURE);
+}
+
+bool    ConfigFile::checkIsCgiPath(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
+    if (flags.check_server && words.size() == 2) {
+        if (flags.check_cgi_path)
+        {
+            cout << "27" << endl;
+            exit(EXIT_FAILURE);
+        }
+        config["cgi_extension"] = checkMaintainCgiExtension(flags, words[1], config);
+        config["cgi_path"] = words[1].substr(0, words[1].find(';') - 1);
+        flags.check_cgi_ext = true;
+        flags.check_cgi_path = true;
+        return true;
+    }
+    cout << "26" << endl;
+    exit(EXIT_FAILURE);
+}
+
 void ConfigFile::parsingConfigFile(const string &file) {
 	string file_str;
 	ConfigFlags utils_flags;
 	vector<string> str_words;
-
 	memset(&utils_flags, 0, sizeof(ConfigFlags));
+
+    ConfigFlags loc_utils_flags;
+    memset(&loc_utils_flags, 0, sizeof(ConfigFlags));
+    loc_utils_flags.check_server = true;
+    loc_utils_flags.check_listen = true;
+    map<string, string> tmp_config;
+    setDefaultConfigValues(tmp_config);
+
 	while (getline(file_fd, file_str, '\n')) {
 		str_words = getTokens(file_str);
 
@@ -284,10 +354,16 @@ void ConfigFile::parsingConfigFile(const string &file) {
 			str_words.clear();
 			continue;
 		}
-        else if (utils_flags.is_opening_bracket && str_words[0] != "}")
+        else if (utils_flags.check_location && utils_flags.is_opening_bracket)
         {
-            parsingLocation(str_words, str_words[0]);
-            continue;
+            if (str_words[0] != "}") {
+                parsingLocation(str_words, loc_utils_flags, tmp_config);
+                continue;
+            }
+            else if (str_words[0] == "}") {
+                checkLocationClosingBracket(loc_utils_flags, str_words, tmp_config, utils_flags);
+                continue;
+            }
         }
         else
         {
@@ -309,37 +385,35 @@ void ConfigFile::parsingConfigFile(const string &file) {
 				checkIsServerName(utils_flags, str_words);
 				break;
 			case ALLOW_METHODS:
-				checkAllowMethods(utils_flags, str_words);
+				checkAllowMethods(utils_flags, str_words, this->config_file);
 				break;
 			case ROOT:
-				checkRoot(utils_flags, str_words);
+				checkRoot(utils_flags, str_words, this->config_file);
 				break;
 			case CLIENT_MAX_BODY_SIZE:
-				checkClientMaxBodySize(utils_flags, str_words);
+				checkClientMaxBodySize(utils_flags, str_words, this->config_file);
 				break;
 			case AUTOINDEX:
-				checkIsAutoindex(utils_flags, str_words);
+				checkIsAutoindex(utils_flags, str_words, this->config_file);
 				break;
 			case INDEX:
-				checkIsIndex(utils_flags, str_words);
+				checkIsIndex(utils_flags, str_words, this->config_file);
 				break;
 			case LOCATION:
 				checkIsLocation(utils_flags, str_words);
 				break;
 			case ERROR_PAGE:
-				checkIsErrorPage(utils_flags, str_words);
-				break;
-			case CGI_EXT:
+				checkIsErrorPage(utils_flags, str_words, this->config_file);
 				break;
 			case CGI_PATH:
-				break;
+                checkIsCgiPath(utils_flags, str_words, this->config_file);
 			case AUTHENTICATION:
 				break;
 			case BRACKET:
 				checkClosingBracket(utils_flags, str_words);
 				break;
 			default:
-				cout << str_words[0] << endl;
+//				cout << str_words[0] << endl;
 				cout << "Config_file is invalid" << endl;
 				exit(EXIT_FAILURE);
 		}
@@ -374,11 +448,8 @@ vector<string> ConfigFile::getTokens(string &str) {
 	return (words);
 }
 
-void    ConfigFile::parsingLocation(vector<string>& words, const string& first) {
-    ConfigFlags loc_utils_flags;
-    memset(&loc_utils_flags, 0, sizeof(ConfigFlags));
-    loc_utils_flags.check_server = true;
-    loc_utils_flags.check_listen = true;
+void    ConfigFile::parsingLocation(vector<string>& words, ConfigFlags& loc_utils_flags,
+                                    map<string, string>& tmp_config) {
 
 //    while (begin != words.end()) {
 //
@@ -392,33 +463,28 @@ void    ConfigFile::parsingLocation(vector<string>& words, const string& first) 
 
     switch (modules[words[0]]) {
         case ALLOW_METHODS:
-            cout << "here" << endl;
-            checkAllowMethods(loc_utils_flags, words);
+            checkAllowMethods(loc_utils_flags, words, tmp_config);
             break;
         case ROOT:
-//                checkRoot(utils_flags, str_words);
-            break;
-        case CLIENT_MAX_BODY_SIZE:
-//                checkClientMaxBodySize(utils_flags, str_words);
+                checkRoot(loc_utils_flags, words, tmp_config);
             break;
         case AUTOINDEX:
-//                checkIsAutoindex(utils_flags, str_words);
+                checkIsAutoindex(loc_utils_flags, words, tmp_config);
             break;
         case INDEX:
-//                checkIsIndex(utils_flags, str_words);
+                checkIsIndex(loc_utils_flags, words, tmp_config);
             break;
         case ERROR_PAGE:
-//                checkIsErrorPage(utils_flags, str_words);
-            break;
-        case CGI_EXT:
+                checkIsErrorPage(loc_utils_flags, words, tmp_config);
             break;
         case CGI_PATH:
+            checkIsCgiPath(loc_utils_flags, words, tmp_config);
             break;
         case AUTHENTICATION:
             break;
         default:
-//                cout << str_words[0] << endl;
-            cout << "Config_file is invalid" << endl;
+//            cout << words[0] << endl;
+            cout << "Location in config_file is invalid" << endl;
             exit(EXIT_FAILURE);
     }
 
