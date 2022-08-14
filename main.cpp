@@ -13,78 +13,81 @@
 
 #include "Http/Http.hpp"
 #include "ConfigFile/config_file.hpp"
+#include "Net/Net.hpp"
 
 int main(int argc, char** argv)
 {
-	struct sockaddr_in serv_addr = {0};
 	char buffer[30000];
-	int socket_fd, err, accept_fd;
+	int socket_fd, accept_fd;
+	Net net;
 
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(80); // USE PORT 8081 IN CASE OF ERROR
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_fd == -1)
+	socket_fd = net.listen_net("0.0.0.0:80");
+	if (socket_fd < 0)
 	{
-		std::cerr << "Socket failure" << std::endl;
-		exit(1);
+		std::cerr << "Jopa" << std::endl;
+		exit(101);
 	}
-	const int enable = 1;
-	/* REUSING SOCKET AFTER SIGINT */
-	err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
-	if (err < 0)
-	{
-		std::cerr << "Set socket options failure" << errno << std::endl;
-	}
-	err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
-	if (err < 0)
-	{
-		std::cerr << "Set socket options failure" << errno << std::endl;
-	}
-	/* */
-	err = bind(socket_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-	if (err < 0)
-	{
-		std::cerr << "Binding failure" << errno <<  std::endl;
-		exit(1);
-	}
-	err = listen(socket_fd, 10);
-	if (err < 0)
-	{
-		std::cerr << "Listening failure" << std::endl;
-		exit(1);
-	}
-	int fd = open("resources/22.png", O_RDWR);
-    char bufer[160038];
-    err = read(fd, bufer, 160038);
 	while (1)
 	{
 		std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl;
-		int addrlen = sizeof(serv_addr);
-		accept_fd = accept(socket_fd, (struct sockaddr *)&serv_addr, (socklen_t *)&addrlen);
+		accept_fd = net.accept_net(socket_fd);
 		if (accept_fd < 0)
 		{
 			std::cerr << "Accepting failure" << std::endl;
 			exit(1);
 		}
-		recv(accept_fd, buffer, 30000, 0);
+		net.recv_net(accept_fd, buffer, 30000);
 		Http http(buffer); //TODO: в разработке
-		std::cout << http.getResponseHeader() << std::endl;
-		const char *message;
-		message = http.getResponseHeader().c_str();
-		send(accept_fd, message, strlen(message), 0);
+		//TODO: здесь сега по причине деаллокации стрига. Скопировать в фиксированный char*. https://rnkovacs.com/gsoc2018/
+		net.send_net(accept_fd, http.getResponseHeader().c_str(), strlen(http.getResponseHeader().c_str()));
 		while (!http.isEndOfFile())
 		{
-			send(accept_fd, http.fileBuffer, http.getBytes(), 0);
+			net.send_net(accept_fd, http.fileBuffer, http.getBytes());
 			http.recieveDataFromFile();
 		}
 		close(accept_fd);
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	}
 
-	close(socket_fd);
+	// close(socket_fd);
 	
 
+	// serv_addr.sin_family = AF_INET;
+	// serv_addr.sin_port = htons(80); // USE PORT 8081 IN CASE OF ERROR
+	// serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	// socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+	// if (socket_fd == -1)
+	// {
+	// 	std::cerr << "Socket failure" << std::endl;
+	// 	exit(1);
+	// }
+	// const int enable = 1;
+	// /* REUSING SOCKET AFTER SIGINT */
+	// err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+	// if (err < 0)
+	// {
+	// 	std::cerr << "Set socket options failure" << errno << std::endl;
+	// }
+	// // err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
+	// // if (err < 0)
+	// // {
+	// // 	std::cerr << "Set socket options failure" << errno << std::endl;
+	// // }
+	// /* */
+	// err = bind(socket_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+	// if (err < 0)
+	// {
+	// 	std::cerr << "Binding failure" << errno <<  std::endl;
+	// 	exit(1);
+	// }
+	// err = listen(socket_fd, SOMAXCONN);
+	// if (err < 0)
+	// {
+	// 	std::cerr << "Listening failure" << std::endl;
+	// 	exit(1);
+	// }
+
+	
 	/* REQUEST TEMPLATE */
 	// std::string buff = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\nsec-ch-ua:  Not A;Brand;v=99, Chromium;v=100, Google Chrome;v=100\r\nsec-ch-ua-mobile: ?0sec-ch-ua-platform: macOS\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-User: ?1\r\nSec-Fetch-Dest: document\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\r\n";
 	/*		*/

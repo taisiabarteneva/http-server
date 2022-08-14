@@ -1,14 +1,14 @@
 NAME = run
 
-VPATH = Http/
+VPATH = Http/ Net/
 
-SRCS = main.cpp Http.cpp Request.cpp Response.cpp
+SRCS = main.cpp Http.cpp Request.cpp Response.cpp Net.cpp
 
 OBJS_DIR = obj
 
 OBJS = $(patsubst %.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
-CFLAGS = -g #-Wall -Wextra -Werror
+CFLAGS = -g #-fsanitize=address -Wall -Wextra -Werror
 
 all: $(NAME)
 
