@@ -1,40 +1,17 @@
 #include "Http.hpp"
 
-std::string Http::getResponse() const
+Http::Http(std::string message)
 {
-    return (response->responseToString());
+    request = new Request(message);
+    response = new Response();
+    bytes = BUFFER_SIZE;
+    prepareResponse("resources/");
 }
 
-std::string Http::getResponseHeader() const
+Http::~Http()
 {
-    return (response->responseHeaderToString());
-}
-
-std::string Http::getResponseBody() const
-{
-    return (response->getBody());
-}
-
-std::string Http::getRequest() const
-{
-    return (request->toString());
-}
-
-std::streamsize Http::getBytes() const
-{
-    return (bytes);
-}
-
-bool Http::isEndOfFile()
-{
-    if (bytes < BUFFER_SIZE)
-    {
-        return (true);
-    }
-    else
-    {
-        return (false);
-    }
+    delete response;
+    delete request;
 }
 
 void Http::recieveDataFromFile()
@@ -63,16 +40,39 @@ void    Http::prepareResponse(std::string root)
     response->setBody(fileBuffer);
 }
 
-Http::Http(std::string message)
+bool Http::isEndOfFile()
 {
-    request = new Request(message);
-    response = new Response();
-    bytes = BUFFER_SIZE;
-    prepareResponse("resources/");
+    if (bytes < BUFFER_SIZE)
+    {
+        return (true);
+    }
+    else
+    {
+        return (false);
+    }
 }
 
-Http::~Http()
+std::string Http::getResponse() const
 {
-    delete response;
-    delete request;
+    return (response->responseToString());
+}
+
+std::string Http::getResponseHeader() const
+{
+    return (response->responseHeaderToString());
+}
+
+std::string Http::getResponseBody() const
+{
+    return (response->getBody());
+}
+
+std::string Http::getRequest() const
+{
+    return (request->toString());
+}
+
+std::streamsize Http::getBytes() const
+{
+    return (bytes);
 }
