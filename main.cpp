@@ -9,10 +9,11 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <vector>
 #define LOCALHOST "127.0.0.1"
 
 #include "Http/Http.hpp"
-#include "ConfigFile/config_file.hpp"
+#include "Parser//config_file.hpp"
 #include "Net/Net.hpp"
 
 int main(int argc, char** argv)
@@ -50,7 +51,7 @@ int main(int argc, char** argv)
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	}
 
-	// close(socket_fd);
+//	 close(socket_fd);
 	
 
 	// serv_addr.sin_family = AF_INET;
@@ -166,5 +167,20 @@ int main(int argc, char** argv)
 
 //    ConfigFile cfg;
 //    cfg.openConfigFile(argv[1]);
+//
+//	vector<Server> servers = cfg.getAllServers();
+//	vector<Server>::iterator it = servers.begin();
+//	while (it != servers.end()) {
+//		cout << "server's ip_port: " << it->getIpPort() << endl << endl;
+//		vector<Location> locations = it->getLocations();
+//		cout << "locations.size: " << locations.size() << endl;
+//		vector<Location>::iterator ite = locations.begin();
+//		while (ite != locations.end()) {
+//			ite->printLocationInfo();
+//			cout << endl;
+//			++ite;
+//		}
+//		++it;
+//	}
 
 }

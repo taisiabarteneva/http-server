@@ -32,12 +32,11 @@ struct ConfigFlags {
 	bool    check_index;
 	bool    check_all_read;
     bool    is_opening_bracket;
-    bool    check_local_root;
+    bool    check_cgi_path;
+    bool    check_cgi_ext;
 
-//	bool    isAuth;
-//	bool    isCgiPath;
-//	bool    isCgiExtension;
-//	bool	isExt;
+//	bool    check_authentication;
+//	bool	is_ext;
 };
 
 
