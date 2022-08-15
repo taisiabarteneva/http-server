@@ -1,11 +1,12 @@
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
-
 # include <string>
 # include <vector>
 # include <map>
 # include <iostream>
+
+#include "config_utils.hpp"
 
 using namespace std;
 
@@ -28,26 +29,23 @@ public:
     string              getAutoindex() const;
     vector<string>      getAllowMethods() const;
     map<string, string> getErrors() const;
-
-
+	void                printLocationInfo();
 
 private:
-    string  ip_port;
-    string  server_name;
-    size_t  client_max_body_size;
-    string  root;
-    string  path;
-    string  cgi_path;
-    string  cgi_extension;
-    string  autoindex;
-    string  index;
+    string              ip_port;
+    string              server_name;
+    size_t              client_max_body_size;
+    string              root;
+    string              path;
+    string              cgi_path;
+    string              cgi_extension;
+    string              autoindex;
+    string              index;
     vector<string>      allow_methods;
     map<string, string> errors;
 
 //    map<string, string> this_location;
 //    string    authentication;
 };
-
-
 
 #endif

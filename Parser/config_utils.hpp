@@ -35,9 +35,8 @@ struct ConfigFlags {
     bool    check_cgi_path;
     bool    check_cgi_ext;
 
-//	bool    isAuth;
-
-//	bool	isExt;
+//	bool    check_authentication;
+//	bool	is_ext;
 };
 
 

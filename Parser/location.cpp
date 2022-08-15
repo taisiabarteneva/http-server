@@ -1,7 +1,6 @@
 #include "location.hpp"
 
 Location::Location(map<string, string>& loc) {
-
     map<string, string>::iterator it_loc = loc.begin();
     while (it_loc != loc.end()) {
         if (it_loc->first == "listen")
@@ -9,19 +8,23 @@ Location::Location(map<string, string>& loc) {
         else if (it_loc->first == "server_name")
             server_name = it_loc->second;
         else if (it_loc->first == "client_max_body_size") {
-            if (it_loc->second[it_loc->second.size() - 1] == 'K')
-                client_max_body_size = atol(
-                        it_loc->second.substr(0,it_loc->second.size() - 1).c_str()) * 1000;
-            else if (it_loc->second[it_loc->second.size() - 1] == 'M')
-                client_max_body_size = atol(
-                        it_loc->second.substr(0,it_loc->second.size() - 1).c_str()) * 1000000;
-            else if (it_loc->second[it_loc->second.size() - 1] == 'G')
-                client_max_body_size = atol(
-                        it_loc->second.substr(0,it_loc->second.size() - 1).c_str()) * 1000000000;
-            else {
-                cout << "30" << endl;
-                exit(EXIT_FAILURE);
-            }
+			char c = it_loc->second[it_loc->second.length() - 1];
+			if (c != 'K' && c != 'M' && c != 'G') {
+				cout << "30" << endl;
+				exit(EXIT_FAILURE);
+			}
+			size_t client_size = atol(it_loc->second.substr(0,it_loc->second.size() - 1).c_str());
+	        switch (c) {
+				case 'K':
+					client_max_body_size = client_size * 1000;
+			        break;
+				case 'M':
+					client_max_body_size = client_size * 1000000;
+					break;
+				case 'G':
+					client_max_body_size = client_size * 1000000000;
+					break;
+	        }
         }
         else if (it_loc->first == "root")
             root = it_loc->second;
@@ -41,6 +44,8 @@ Location::Location(map<string, string>& loc) {
             errors[it_loc->first] = it_loc->second;
         ++it_loc;
     }
+
+//	printLocationInfo();
 }
 
 Location::Location(const Location& location) {
@@ -127,4 +132,33 @@ vector<string>  Location::getAllowMethods() const {
 
 map<string, string> Location::getErrors() const {
     return errors;
+}
+
+void Location::printLocationInfo() {
+
+	cout << "ip_port: " << ip_port << endl;
+	cout << "server_name: " << server_name << endl;
+	cout << "client_max_body_size: " << client_max_body_size << endl;
+	cout << "root: " << root << endl;
+	cout << "path: " << path << endl;
+	cout << "cgi_path: " << cgi_path << endl;
+	cout << "cgi_extension: " << cgi_extension << endl;
+	cout << "autoindex: " << autoindex << endl;
+	cout << "index: " << index << endl;
+
+	vector<string>::iterator it = allow_methods.begin();
+	cout << "allow_methods: ";
+	while (it != allow_methods.end()) {
+		cout << *it << " ";
+		++it;
+	}
+	cout << endl;
+
+	map<string, string>::iterator ite = errors.begin();
+	cout << "errors: ";
+	while (ite != errors.end()) {
+		cout << ite->first << " " << ite->second << " ";
+		++ite;
+	}
+	cout << endl << "done!" << endl << endl;
 }

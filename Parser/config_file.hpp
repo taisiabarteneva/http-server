@@ -49,15 +49,16 @@ public:
     bool    checkIsCgiPath(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
     string  checkMaintainCgiExtension(ConfigFlags &flags, string word, map<string, string>& config);
 
-    Server      createNewServer(string ip_port, vector<Location>& locations);
-    Location    createNewLocation(map<string, string>& config);
+    Server              createNewServer(string ip_port, vector<Location>& locations);
+    Location            createNewLocation(map<string, string>& config);
+	vector<Location>    getAllLocations();
+	vector<Server>      getAllServers();
 
 
 private:
 	map<string, ConfigModules>  modules;
 	map<string, string>         config_file;
 	ifstream                    file_fd;
-	string					    cur_listen;
 	vector<string>              all_listen;
     vector<string>              cgi_extension;
 	vector<Location>			all_locations;
