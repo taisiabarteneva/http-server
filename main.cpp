@@ -38,12 +38,13 @@ int main(int argc, char** argv)
 		}
 		net.recv_net(accept_fd, buffer, 30000);
 		Http http(buffer); //TODO: в разработке
-		//TODO: здесь сега по причине деаллокации стрига. Скопировать в фиксированный char*. https://rnkovacs.com/gsoc2018/
+		//TODO: здесь сега по причине деаллокации стринга. Скопировать в фиксированный char*. https://rnkovacs.com/gsoc2018/
 		net.send_net(accept_fd, http.getResponseHeader().c_str(), strlen(http.getResponseHeader().c_str()));
 		while (!http.isEndOfFile())
 		{
-			net.send_net(accept_fd, http.fileBuffer, http.getBytes());
+			std::cout << "TEST" << std::endl;
 			http.recieveDataFromFile();
+			net.send_net(accept_fd, http.fileBuffer, http.getBytes());
 		}
 		close(accept_fd);
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;

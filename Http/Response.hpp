@@ -18,6 +18,7 @@ private:
     int responseCode; //TODO: а нужен?
     std::map<StartLine, std::string> startLine;
     std::map<std::string, std::string> headers;
+    std::map<std::string, std::string> mimeTypes;
     char* body;
     std::string fileSize;
     std::string fileType;
@@ -26,7 +27,7 @@ private:
     std::string getHeaderStrings();
     void codeStringToInt();
     void initStatusCodes();
-    
+    void initMIMETypes();
 
 public:
     std::map<int, std::string> statusCodes;
@@ -45,7 +46,7 @@ public:
     void setFileType(std::string type);
     char* getBody() const;
     std::string getFileSize() const;
-    std::string getFileType() const;
+    std::string getMIME() const;
 };
 
 #endif

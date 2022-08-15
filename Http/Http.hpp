@@ -21,6 +21,7 @@ private:
 public: //TODO: debug. delete
     void recieveDataFromFile();
     void prepareResponse(std::string root);
+    void openFile();
 
 public:
     char fileBuffer[BUFFER_SIZE];
