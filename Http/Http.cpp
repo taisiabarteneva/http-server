@@ -59,8 +59,16 @@ void    Http::responseGet(std::string root)
     openFile(fileName);
     if (reader.fail())
     {
-        std::cerr << "Bad file" << std::endl;
-        responseError("404", "");
+        if (!access(fileName.c_str(), F_OK))
+        {
+            std::cerr << "Permission denied" << std::endl;
+            responseError("403", response->getErrorPage("403"));
+        }
+        else
+        {
+            std::cerr << "Bad file" << std::endl;
+            responseError("404", response->getErrorPage("404"));
+        }
     }
     else
     {

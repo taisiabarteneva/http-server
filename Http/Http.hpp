@@ -6,6 +6,7 @@
 # include <string>
 # include <iostream>
 # include <fstream>
+# include <unistd.h>
 # include "Response.hpp"
 # include "Request.hpp"
 
