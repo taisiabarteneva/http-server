@@ -50,9 +50,9 @@ void Response::initStatusCodes()
 
 void Response::initMIMETypes()
 {
-    mimeTypes["html"] = "text/html";
-    mimeTypes["htm"] = "text/html";
-    mimeTypes["shtml"] = "text/html";
+    mimeTypes["html"] = "text/html; charset=utf-8";
+    mimeTypes["htm"] = "text/html; charset=utf-8";
+    mimeTypes["shtml"] = "text/html; charset=utf-8";
     mimeTypes["css"] = "text/css";
     mimeTypes["xml"] = "text/xml";
     mimeTypes["gif"] = "image/gif";
@@ -63,7 +63,7 @@ void Response::initMIMETypes()
     mimeTypes["rss"] = "application/rss+xml";
 
     mimeTypes["mml"] = "text/mathml";
-    mimeTypes["txt"] = "text/plain";
+    mimeTypes["txt"] = "text/plain; charset=utf-8";
     mimeTypes["jad"] = "text/vnd.sun.j2me.app-descriptor";
     mimeTypes["wml"] = "text/vnd.wap.wml";
     mimeTypes["htc"] = "text/x-component";
@@ -169,11 +169,18 @@ void Response::initMIMETypes()
     mimeTypes["avi"] = "video/x-msvideo";
 }
 
+void Response::initResponsePages()
+{
+    errors["403"] = "resources/errors/403.html";
+    errors["404"] = "resources/errors/404.html";
+}
+
 Response::Response()
 {
     startLine[VERSION] = RESPONSE_VERSION;
     initStatusCodes();
     initMIMETypes();
+    initResponsePages();
 }
 
 Response::~Response()
@@ -198,7 +205,7 @@ std::string Response::responseToString()
     ret += startLine[CODE] + " ";
     ret += startLine[STATUS] + "\r\n";
     ret += getHeaderStrings() + "\r\n";
-    ret += body;// TODO: body отдельно отправляется
+    ret += body;
     return ret;
 }
 
@@ -252,19 +259,22 @@ void    Response::setFileType(std::string type)
     this->fileType = type;
 }
 
+std::string Response::getErrorPage(std::string code)
+{
+    return errors[code];
+}
+
 std::string Response::getFileSize() const
 {
     return fileSize;
 }
-#include <iostream>
+
 std::string Response::getMIME() const
 {
-    // TODO: прогнать типы и определить
     std::string key = fileType;
-    std::string mime = "image/" + fileType + "; charset=utf-8";
+    std::string mime;
     for (std::map<std::string, std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); it++)
     {
-        // std::cout << it->first << std::endl;
         if (fileType == it->first)
         {
             mime = it->second;

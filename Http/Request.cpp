@@ -1,4 +1,3 @@
-// #include <iostream> //TODO: delete
 #include "Request.hpp"
 
 void Request::recieveHeaders(std::string& message)

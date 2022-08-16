@@ -16,42 +16,87 @@ Http::~Http()
     delete request;
 }
 
-void    Http::openFile()
+void    Http::openFile(std::string file)
 {
     reader.clear();
-    reader.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
-    if (!reader.good())
+    reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
+    if (reader.fail())
     {
-        std::cerr << "Bad file" << std::endl; //TODO: debug
+        std::cerr << "Open file failure" << std::endl;
+        return ; 
     }
     response->setFileSize(reader.tellg()); //TODO:: а что с большим файлом?
     reader.seekg(0);
-    response->setFileType(fileName.substr(fileName.find(".") + 1));
+    response->setFileType(file.substr(file.find(".") + 1));
     reader.clear();
 }
 
 void Http::recieveDataFromFile()
 {
     reader.read(fileBuffer, BUFFER_SIZE);
-    if (reader.fail() || reader.bad())
+    if (reader.bad())
     {
         std::cerr << "File reading fail" << std::endl; // TODO:??
     }
     bytes = reader.gcount();
 }
 
+void    Http::responseError(std::string code, std::string path)
+{
+    response->setCode(code);
+    response->setStatus(response->statusCodes[atoi(code.c_str())]);
+    response->setHeader("Connection", "keep-alive");
+    openFile(path);
+    if (reader.fail())
+    {
+        openFile(response->getErrorPage(code));
+    }
+}
+
+void    Http::responseGet(std::string root)
+{
+    fileName = root + request->getURI(); //TODO: filename from GET
+    openFile(fileName);
+    if (reader.fail())
+    {
+        std::cerr << "Bad file" << std::endl;
+        responseError("404", "");
+    }
+    else
+    {
+        response->setCode("200");
+        response->setStatus(response->statusCodes[200]);
+    }
+
+    response->setHeader("Content-Type", response->getMIME()); // TODO: подготовить файл
+    response->setHeader("Content-Length", response->getFileSize());
+    response->setHeader("Connection", "close");
+    response->setHeader("Accept-Ranges", "bytes");
+    response->setBody(fileBuffer);
+}
+
+void    Http::responsePost(std::string root)
+{
+
+}
+
+void    Http::responseDelete(std::string root)
+{
+
+}
+
 void    Http::prepareResponse(std::string root)
 {
     //TODO: проверка файла
-    response->setCode("200");
-    response->setStatus(response->statusCodes[200]);
-    fileName = root + request->getURI(); //TODO: filename from GET
-    std::cout << fileName << std::endl;
-    openFile(); //if body present
-    response->setHeader("Content-Type", response->getMIME()); // TODO: подготовить файл
-    std::cout << getResponseHeader() << std::endl;
-    response->setHeader("Content-Length", response->getFileSize());
-    response->setBody(fileBuffer);
+    if (request->getMethod() == request->stringToMethod("GET"))
+    {
+        std::cout << "GETGETGET" << std::endl;
+        responseGet(root);
+    }
+    else if (request->getMethod() == request->stringToMethod("POST"))
+        responsePost(root);
+    else if (request->getMethod() == request->stringToMethod("DELETE"))
+        responseDelete(root);
 }
 
 bool Http::isEndOfFile()

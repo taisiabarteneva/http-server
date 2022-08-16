@@ -19,6 +19,7 @@ private:
     std::map<StartLine, std::string> startLine;
     std::map<std::string, std::string> headers;
     std::map<std::string, std::string> mimeTypes;
+    std::map<std::string, std::string> errors;
     char* body;
     std::string fileSize;
     std::string fileType;
@@ -28,6 +29,7 @@ private:
     void codeStringToInt();
     void initStatusCodes();
     void initMIMETypes();
+    void initResponsePages();
 
 public:
     std::map<int, std::string> statusCodes;
@@ -45,6 +47,7 @@ public:
     void setFileSize(int size);
     void setFileType(std::string type);
     char* getBody() const;
+    std::string getErrorPage(std::string code);
     std::string getFileSize() const;
     std::string getMIME() const;
 };

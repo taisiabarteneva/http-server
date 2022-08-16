@@ -1,5 +1,6 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
+# define ERROR_PAGE_PATH "resources/errors/"
 
 # include <map>
 # include <string>
@@ -22,8 +23,6 @@ private:
     std::map<std::string, std::string> headers;
     std::string body;
 
-    std::string methodToString(Method method);
-    Method stringToMethod(std::string method);
     std::string recieveStartLine(std::string& message, char delimiter);
     void recieveHeaders(std::string& message);
     std::string getStartLineString();
@@ -36,6 +35,8 @@ public:
     std::map<std::string, std::string> getHeaders() const;
     std::string getBody() const;
     std::string toString();
+    std::string methodToString(Method method);
+    Method stringToMethod(std::string method);
 
     
 

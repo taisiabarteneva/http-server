@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	int socket_fd, accept_fd;
 	Net net;
 
-	socket_fd = net.listen_net("0.0.0.0:80");
+	socket_fd = net.listen_net("0.0.0.0:8088");
 	if (socket_fd < 0)
 	{
 		std::cerr << "Jopa" << std::endl;
@@ -45,13 +45,16 @@ int main(int argc, char** argv)
 		{
 			std::cout << "TEST" << std::endl;
 			http.recieveDataFromFile();
+			std::cout << http.getBytes() << std::endl;
+			// std::cout << 
 			net.send_net(accept_fd, http.fileBuffer, http.getBytes());
+			std::cout << "TEST3" << std::endl;
 		}
 		close(accept_fd);
 		std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	}
 
-//	 close(socket_fd);
+	//  close(socket_fd);
 	
 
 	// serv_addr.sin_family = AF_INET;
