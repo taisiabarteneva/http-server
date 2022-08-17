@@ -45,7 +45,7 @@ class Core
         int parse_address(std::string address, char *ipv4, char *port);
     
     public:
-        Core(char** argv);
+        Core(char *config);
         Core(const Core & rhs);
         const Core & operator=(const Core & rhs);
         ~Core();

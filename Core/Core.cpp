@@ -9,7 +9,7 @@
 //     memset(&addr, 0, sizeof(addr));
 // }
 
-Core::Core(char ** argv)
+Core::Core(char *config)
 {
     ConfigFile cfg;
     cfg.openConfigFile(argv[1]);

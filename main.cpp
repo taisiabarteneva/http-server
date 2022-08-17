@@ -19,14 +19,18 @@
 
 int main(int argc, char** argv)
 {
-	Core myCore(argv);
-	myCore.createListenSock();
-	myCore.fillServerStruct("0.0.0.0:8080");
-	myCore.bindListenSock();
-	myCore.createQueue();
-	myCore.initSocketSet();
-	myCore.stateManager();
-
+	if (argc != 1)
+	{
+		std::cerr << "Usage:\n./run {config__file}.cfg\n";
+		exit(EXIT_FAILURE); 
+	}
+	Core core(argv[1]);
+	// myCore.createListenSock();
+	// myCore.fillServerStruct("0.0.0.0:8080");
+	// myCore.bindListenSock();
+	// myCore.createQueue();
+	// myCore.initSocketSet();
+	// myCore.stateManager();
 
 	// char buffer[30000];
 	// int socket_fd, accept_fd;
