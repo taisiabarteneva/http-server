@@ -1,5 +1,6 @@
 #include "config_file.hpp"
 #include "config_utils.hpp"
+#include "../Core/Core.hpp"
 
 #define DEFAULT_IP_PORT "127.0.0.1:8080";
 
@@ -233,7 +234,7 @@ bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words, 
 	}
 	cout << "21" << endl;
 	exit(EXIT_FAILURE);
-}
+} 
 
 bool    ConfigFile::checkClosingBracket(ConfigFlags &flags, vector<string> &words) {
 	if (flags.check_server && flags.check_listen && words.size() == 1) {

@@ -1,11 +1,34 @@
 #include "Core.hpp"
+#include "../Parser/config_file.hpp"
 
-Core::Core() 
+// Core::Core(std::string & ip_port, vector<Location> locations) 
+// {
+//     this->address = ip_port;
+//     this->locations = locations;
+//     this->enable_mode = 1;
+//     memset(&addr, 0, sizeof(addr));
+// }
+
+Core::Core(char ** argv)
 {
-    this->enable_mode = 1;
-    // this->addr = NULL;
-    // this->client = NULL; // 
-    // this->active_set = NULL;
+    ConfigFile cfg;
+    cfg.openConfigFile(argv[1]);
+    servers = cfg.getAllServers();
+
+    vector<Server>::iterator it = servers.begin();
+    while (it != servers.end()) {
+        cout << "server's ip_port: " << it->getIpPort() << endl << endl;
+        vector<Location> locations = it->getLocations();
+        cout << "locations.size: " << locations.size() << endl;
+        vector<Location>::iterator ite = locations.begin();
+        while (ite != locations.end()) {
+            ite->printLocationInfo();
+            cout << endl;
+            ++ite;
+        }
+        ++it;
+    }
+
 }
 
 Core::Core(const Core & rhs) 
@@ -47,7 +70,8 @@ int Core::fillServerStruct(std::string address)
         return PARSE_ERROR;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(atoi(port));
-    addr.sin_addr.s_addr = htonl(ipv4);
+    addr.sin_addr.s_addr = htonl(atoi(ipv4));
+    return 0;
 }
 
 void Core::bindListenSock(void)
@@ -81,18 +105,21 @@ void Core::createQueue(void)
     }
 }
 
+// парсер отправит вектор структур, по нему создаем слушающие сокеты в цикле 
+
 void Core::initSocketSet(void)
 {
     this->active_set[0].fd = listen_sock;
     this->active_set[0].events = POLLIN; //  POLLIN - there is data to read
     this->active_set[0].revents = 0;    // returned event 
-    num_set = 1;
+    this->num_set = 1;
 }
 
 void Core::stateManager(void)
 {
     int res;
-    int err; 
+    int err;
+    int i; 
 
     while (true)
     {
@@ -103,6 +130,7 @@ void Core::stateManager(void)
             3 - specifies the number of milliseconds that poll() should block waiting for a file descriptor to become
                 ready
                 specifying a negative value in timeout means an infinite timeout
+            функция блокируется до тех пор, пока во входящем сокете не появятся данные для чтения; изначально проверяем только слушающий сокет
         */
         res = poll(active_set, num_set, -1);
         if (res < 0)
@@ -112,15 +140,21 @@ void Core::stateManager(void)
         }
         if (res > 0)
         {
-            for (int i = 0; i < num_set; i++)
+            for (i = 0; i < num_set; i++)
             {
-                if (active_set[i].revents & POLLIN)
+                if (active_set[i].revents & POLLIN) // возвращенное состояние имеет выставленный бит, соответствующий событию POLL IN
                 {
-                    active_set[i].revents &= - POLLIN;
-                    if (i == 0) // this is the listening socket -> accept new connection
+                    // fprintf(stdout, "got POLL IN in fd [%d]\n", active_set[i].fd); // 
+                    active_set[i].revents &= - POLLIN; // для повторного использвания структуры обнуляем событие;
+
+                    if (i == 0) /* this is the listening socket -> accept new connection */
                     { 
                         size = sizeof(client);
-                        connect_sock = accept(active_set[i].fd, (struct sockaddr *)&client, &size);
+                        memset(&client, 0, sizeof(client));
+                        // connect_sock = accept(active_set[i].fd, (struct sockaddr *)&client, (socklen_t *)&size);
+                        connect_sock = accept(active_set[i].fd, NULL, NULL);
+                        fprintf(stdout, "new client with fd [%d]\n", connect_sock);
+                        fcntl(connect_sock, F_SETFL, O_NONBLOCK); // 
                         /* next step: add a new connected socket to the set */
                         if (num_set < SOMAXCONN)
                         {
@@ -133,24 +167,42 @@ void Core::stateManager(void)
                             fprintf(stderr, "[Error] : cannot create new socket\n");
                             close(connect_sock);
                         }
-                    } else // the connection was already established  
+                    } else /* the connection was already established  */
                     {
-                        err = readFromClient(active_set[i].fd, buf, 1024); // 
+                        err = readFromClient(active_set[i].fd, buf, BUF_LEN);
+                        std::cout << "Message from Client : " << buf << std::endl;
+                        active_set[i].events = POLLOUT;
                         if (err < 0)
                         {
                             close(active_set[i].fd);
                             if (i < num_set - 1)
                             {
+                                // ToDo: in a loop 
                                 active_set[i] = active_set[num_set - 1];
                                 num_set--;
                                 i--;
                             }
-                        }
-                        else
+                        } else if (err == 0) // пустой запрос, закрыть соединение 
                         {
-                            sendToClient(active_set[i].fd, buf, 1024);
+                            // ToDo: close connection, remove in a loop
+                            close(active_set[i].fd);
+                            active_set[i].fd = -1;
+                            for (int i = 0; i < num_set; i++)
+                            {
+                                if (active_set[i].fd == -1)
+                                {
+                                    for (int j = 0; j < num_set - 1; j++)
+                                        active_set[i].fd = active_set[j + 1].fd;
+                                    i--;
+                                    num_set--;
+                                }
+                            }
                         }
                     }
+                } else if (active_set[i].revents & POLLOUT)
+                {
+                    sendToClient(active_set[i].fd, buf, BUF_LEN);
+                    active_set[i].events = POLLIN;
                 }
             }
         }
@@ -159,12 +211,21 @@ void Core::stateManager(void)
 
 int Core::readFromClient(int conn, char* buffer, size_t size)
 {
-    return recv(conn, buffer, (int)size, 0);
+    bzero((void *)buf, sizeof(buf));
+    recv(conn, buffer, (int)size, 0);
+    
+    http.sendMessage(buffer);
+    return 0; // ToDo
 }
 
 int Core::sendToClient(int conn, const char *buffer, size_t size)
 {
-    return send(conn, buffer, (int)size, 0);
+    std::string response = http.getResponse();
+    response = "HTTP/1.1 200 OK\nContent-Length: 5\nContent-Type: text/html\r\n\r\nhello";
+    std::cout << "THIS IS A RESPONSE : " << response << std::endl;
+    // get bytes and send it back to the client
+    return send(conn, response.c_str(), strlen(response.c_str()), 0);
+    // return send(conn, http.getResponseBody().c_str(), strlen(http.getResponseBody().c_str()), 0);
 }
 
 /* ------------------------ private methods ------------------------ */

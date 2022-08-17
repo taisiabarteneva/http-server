@@ -12,7 +12,7 @@
 
 #include "config_utils.hpp"
 #include "location.hpp"
-#include "../Server/Server.hpp"
+#include "../Core/Core.hpp"
 
 using namespace std;
 

@@ -1,96 +1,70 @@
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <vector>
+// #include <iostream>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <string.h>
+// #include <sys/types.h>
+// #include <sys/socket.h>
+// #include <netinet/in.h>
+// #include <netdb.h>
+// #include <arpa/inet.h>
+// #include <fcntl.h>
+// #include <vector>
+// #include "Net/Net.hpp"
 #define LOCALHOST "127.0.0.1"
 
+#include "Core/Core.hpp"
 #include "Http/Http.hpp"
-#include "Parser//config_file.hpp"
-#include "Net/Net.hpp"
+#include "Parser/config_file.hpp"
 
 int main(int argc, char** argv)
 {
-	char buffer[30000];
-	int socket_fd, accept_fd;
-	Net net;
+	Core myCore(argv);
+	myCore.createListenSock();
+	myCore.fillServerStruct("0.0.0.0:8080");
+	myCore.bindListenSock();
+	myCore.createQueue();
+	myCore.initSocketSet();
+	myCore.stateManager();
 
-	socket_fd = net.listen_net("0.0.0.0:8088");
-	if (socket_fd < 0)
-	{
-		std::cerr << "Jopa" << std::endl;
-		exit(101);
-	}
-	while (1)
-	{
-		std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl;
-		accept_fd = net.accept_net(socket_fd);
-		if (accept_fd < 0)
-		{
-			std::cerr << "Accepting failure" << std::endl;
-			exit(1);
-		}
-		net.recv_net(accept_fd, buffer, 30000);
-		Http http(buffer); //TODO: в разработке
-		//TODO: здесь сега по причине деаллокации стринга. Скопировать в фиксированный char*. https://rnkovacs.com/gsoc2018/
-		net.send_net(accept_fd, http.getResponseHeader().c_str(), strlen(http.getResponseHeader().c_str()));
-		while (!http.isEndOfFile())
-		{
-			std::cout << "TEST" << std::endl;
-			http.recieveDataFromFile();
-			std::cout << http.getBytes() << std::endl;
-			// std::cout << 
-			net.send_net(accept_fd, http.fileBuffer, http.getBytes());
-			std::cout << "TEST3" << std::endl;
-		}
-		close(accept_fd);
-		std::cout << "CONNECTION REFUSED!!!" << std::endl;
-	}
+
+	// char buffer[30000];
+	// int socket_fd, accept_fd;
+	// Net net;
+
+	// socket_fd = net.listen_net("0.0.0.0:8088");
+	// if (socket_fd < 0)
+	// {
+	// 	std::cerr << "Jopa" << std::endl;
+	// 	exit(101);
+	// }
+	// while (1)
+	// {
+	// 	std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl;
+	// 	accept_fd = net.accept_net(socket_fd);
+	// 	if (accept_fd < 0)
+	// 	{
+	// 		std::cerr << "Accepting failure" << std::endl;
+	// 		exit(1);
+	// 	}
+	// 	net.recv_net(accept_fd, buffer, 30000);
+	// 	Http http(buffer); //TODO: в разработке
+	// 	//TODO: здесь сега по причине деаллокации стринга. Скопировать в фиксированный char*. https://rnkovacs.com/gsoc2018/
+	// 	net.send_net(accept_fd, http.getResponseHeader().c_str(), strlen(http.getResponseHeader().c_str()));
+	// 	while (!http.isEndOfFile())
+	// 	{
+	// 		std::cout << "TEST" << std::endl;
+	// 		http.recieveDataFromFile();
+	// 		std::cout << http.getBytes() << std::endl;
+	// 		// std::cout << 
+	// 		net.send_net(accept_fd, http.fileBuffer, http.getBytes());
+	// 		std::cout << "TEST3" << std::endl;
+	// 	}
+	// 	close(accept_fd);
+	// 	std::cout << "CONNECTION REFUSED!!!" << std::endl;
+	// }
 
 	//  close(socket_fd);
-	
-
-	// serv_addr.sin_family = AF_INET;
-	// serv_addr.sin_port = htons(80); // USE PORT 8081 IN CASE OF ERROR
-	// serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	// socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-	// if (socket_fd == -1)
-	// {
-	// 	std::cerr << "Socket failure" << std::endl;
-	// 	exit(1);
-	// }
-	// const int enable = 1;
-	// /* REUSING SOCKET AFTER SIGINT */
-	// err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
-	// if (err < 0)
-	// {
-	// 	std::cerr << "Set socket options failure" << errno << std::endl;
-	// }
-	// // err = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int));
-	// // if (err < 0)
-	// // {
-	// // 	std::cerr << "Set socket options failure" << errno << std::endl;
-	// // }
-	// /* */
-	// err = bind(socket_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-	// if (err < 0)
-	// {
-	// 	std::cerr << "Binding failure" << errno <<  std::endl;
-	// 	exit(1);
-	// }
-	// err = listen(socket_fd, SOMAXCONN);
-	// if (err < 0)
-	// {
-	// 	std::cerr << "Listening failure" << std::endl;
-	// 	exit(1);
-	// }
 
 	
 	/* REQUEST TEMPLATE */
@@ -170,20 +144,20 @@ int main(int argc, char** argv)
 
 //    ConfigFile cfg;
 //    cfg.openConfigFile(argv[1]);
-//
-//	vector<Server> servers = cfg.getAllServers();
-//	vector<Server>::iterator it = servers.begin();
-//	while (it != servers.end()) {
-//		cout << "server's ip_port: " << it->getIpPort() << endl << endl;
-//		vector<Location> locations = it->getLocations();
-//		cout << "locations.size: " << locations.size() << endl;
-//		vector<Location>::iterator ite = locations.begin();
-//		while (ite != locations.end()) {
-//			ite->printLocationInfo();
-//			cout << endl;
-//			++ite;
-//		}
-//		++it;
-//	}
+
+	// vector<Server> servers = cfg.getAllServers();
+	// vector<Server>::iterator it = servers.begin();
+	// while (it != servers.end()) {
+	// 	cout << "server's ip_port: " << it->getIpPort() << endl << endl;
+	// 	vector<Location> locations = it->getLocations();
+	// 	cout << "locations.size: " << locations.size() << endl;
+	// 	vector<Location>::iterator ite = locations.begin();
+	// 	while (ite != locations.end()) {
+	// 		ite->printLocationInfo();
+	// 		cout << endl;
+	// 		++ite;
+	// 	}
+	// 	++it;
+	// }
 
 }

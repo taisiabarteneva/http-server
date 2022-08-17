@@ -2,6 +2,7 @@
 # define CORE_HPP
 
 # include <stdio.h>
+# include <iostream>
 # include <string.h>
 # include <string>
 # include <stdlib.h>
@@ -16,6 +17,9 @@
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <netdb.h>
+# include "../Http/Http.hpp"
+# include "../Parser/location.hpp"
+# include "../Server/Server.hpp"
 
 # define BUF_LEN        1024
 # define PARSE_ERROR    -1
@@ -23,6 +27,7 @@
 class Core
 {
     private:
+        vector<Server>      servers;
         int                 listen_sock;    //  слушающий сокет
         int                 connect_sock;   //  двусторонний сокет
         int                 enable_mode;
@@ -32,14 +37,15 @@ class Core
         socklen_t           size;
         struct sockaddr_in  addr;
         struct sockaddr_in  client;
-        struct pollfd       active_set[SOMAXCONN]; // 
+        struct pollfd       active_set[SOMAXCONN]; // ??
         bool                autoindex;
         int                 num_set;
+        Http                http;
 
         int parse_address(std::string address, char *ipv4, char *port);
     
     public:
-        Core();
+        Core(char** argv);
         Core(const Core & rhs);
         const Core & operator=(const Core & rhs);
         ~Core();
