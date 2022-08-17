@@ -155,10 +155,16 @@ void Location::printLocationInfo() {
 	cout << endl;
 
 	map<string, string>::iterator ite = errors.begin();
+    map<string, string>::iterator rite = errors.end();
+    if (rite != ite)
+            rite--;
 	cout << "errors: ";
-	while (ite != errors.end()) {
-		cout << ite->first << " " << ite->second << " ";
+	while (ite != rite) {
+		cout << ite->first << " " << ite->second << ", ";
 		++ite;
 	}
+    if (ite != errors.end())
+        cout << ite->first << " " << ite->second;
+
 	cout << endl << "done!" << endl << endl;
 }

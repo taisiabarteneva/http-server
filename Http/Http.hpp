@@ -12,33 +12,34 @@
 
 class Http
 {
-private:
-    Request* request;
-    Response* response;
-    std::ifstream reader;
-    std::streamsize bytes;
-    std::string fileName;
-    //config file;
-public: //TODO: debug. delete
-    void recieveDataFromFile();
-    void prepareResponse(std::string root);
-    void openFile(std::string file);
-    void responseGet(std::string root);
-    void responsePost(std::string root);
-    void responseDelete(std::string root);
-    void responseError(std::string code, std::string path);
+    private:
+        Request* request;
+        Response* response;
+        std::ifstream reader;
+        std::streamsize bytes;
+        std::string fileName;
+        //config file;
+    public: //TODO: debug. delete
+        void recieveDataFromFile();
+        void prepareResponse(std::string root);
+        void openFile(std::string file);
+        void responseGet(std::string root);
+        void responsePost(std::string root);
+        void responseDelete(std::string root);
+        void responseError(std::string code, std::string path);
 
-public:
-    char fileBuffer[BUFFER_SIZE];
-    Http(std::string request);
-    ~Http();
-    std::string getResponse() const;
-    std::string getRequest() const;
-    std::string getResponseHeader() const;
-    std::string getResponseBody() const;
-    // Http createResponce();
-    std::streamsize getBytes() const;
-    bool isEndOfFile();
+    public:
+        char fileBuffer[BUFFER_SIZE];
+        void sendMessage(std::string request);
+        // Http(std::string request);
+        ~Http();
+        std::string getResponse() const;
+        std::string getRequest() const;
+        std::string getResponseHeader() const;
+        std::string getResponseBody() const;
+        // Http createResponce();
+        std::streamsize getBytes() const;
+        bool isEndOfFile();
 };
 
 

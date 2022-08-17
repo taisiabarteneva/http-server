@@ -1,8 +1,8 @@
 NAME = run
 
-VPATH = Http/ Net/
-
-SRCS = main.cpp Http.cpp Request.cpp Response.cpp Net.cpp
+VPATH = Http/ Net/ Core/ Parser/ Server/
+ 
+SRCS = main.cpp Http.cpp Request.cpp Response.cpp Net.cpp Core.cpp config_file.cpp location.cpp Server.cpp
 
 OBJS_DIR = obj
 

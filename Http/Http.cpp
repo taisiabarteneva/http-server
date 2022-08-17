@@ -1,11 +1,11 @@
 #include "Http.hpp"
 
-Http::Http(std::string message/*, std::string(or struct) source*/)
+void Http::sendMessage(std::string message/*, std::string(or struct) source*/)
 {
     request = new Request(message);
     response = new Response();
     bytes = BUFFER_SIZE;
-    prepareResponse("resources"); /* source*/
+    prepareResponse("resources"); /* source */
 }
 
 Http::~Http()
