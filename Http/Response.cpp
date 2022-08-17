@@ -269,6 +269,11 @@ std::string Response::getFileSize() const
     return fileSize;
 }
 
+std::string Response::getHeaderValue(std::string key)
+{
+    return (headers.find(key)->second);
+}
+
 std::string Response::getMIME() const
 {
     std::string key = fileType;

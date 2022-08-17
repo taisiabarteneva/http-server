@@ -30,10 +30,10 @@ class Http
 
     public:
         char fileBuffer[BUFFER_SIZE];
-        void sendMessage(std::string request);
-        // Http(std::string request);
+        void processMessage(std::string request);
+        Http();
         ~Http();
-        std::string getResponse() const;
+        // std::string getResponse() const; //TODO: old version. Not supported
         std::string getRequest() const;
         std::string getResponseHeader() const;
         std::string getResponseBody() const;

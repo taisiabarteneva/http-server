@@ -47,6 +47,7 @@ public:
     void setFileSize(int size);
     void setFileType(std::string type);
     char* getBody() const;
+    std::string getHeaderValue(std::string key);
     std::string getErrorPage(std::string code);
     std::string getFileSize() const;
     std::string getMIME() const;

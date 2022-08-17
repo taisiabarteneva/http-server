@@ -1,11 +1,16 @@
 #include "Http.hpp"
 
-void Http::sendMessage(std::string message/*, std::string(or struct) source*/)
+void Http::processMessage(std::string message/*, std::string(or struct) source*/)
 {
-    request = new Request(message);
-    response = new Response();
+    request->initRequest(message);
     bytes = BUFFER_SIZE;
     prepareResponse("resources"); /* source */
+}
+
+Http::Http()
+{
+    request = new Request();
+    response = new Response();
 }
 
 Http::~Http()
@@ -45,7 +50,7 @@ void    Http::responseError(std::string code, std::string path)
 {
     response->setCode(code);
     response->setStatus(response->statusCodes[atoi(code.c_str())]);
-    response->setHeader("Connection", "keep-alive");
+    response->setHeader("Connection", "keep-alive"); //TODO: ???
     openFile(path);
     if (reader.fail())
     {
@@ -56,35 +61,51 @@ void    Http::responseError(std::string code, std::string path)
 void    Http::responseGet(std::string root)
 {
     fileName = root + request->getURI(); //TODO: filename from GET
+    std::cout << fileName << std::endl;
     openFile(fileName);
-    if (reader.fail())
-    {
-        if (!access(fileName.c_str(), F_OK))
-        {
-            std::cerr << "Permission denied" << std::endl;
-            responseError("403", response->getErrorPage("403"));
-        }
-        else
-        {
-            std::cerr << "Bad file" << std::endl;
-            responseError("404", response->getErrorPage("404"));
-        }
-    }
-    else
-    {
+    // if (reader.fail())
+    // {
+    //     if (!access(fileName.c_str(), F_OK))
+    //     {
+    //         std::cerr << "Permission denied" << std::endl;
+    //         responseError("403", response->getErrorPage("403"));
+    //     }
+    //     else
+    //     {
+    //         std::cerr << "Bad file" << std::endl;
+    //         responseError("404", response->getErrorPage("404"));
+    //     }
+    // }
+    // else
+    // {
         response->setCode("200");
         response->setStatus(response->statusCodes[200]);
-    }
+    // }
 
     response->setHeader("Content-Type", response->getMIME()); // TODO: подготовить файл
     response->setHeader("Content-Length", response->getFileSize());
-    response->setHeader("Connection", "close");
+    response->setHeader("Connection", "close"); //TODO: ???
     response->setHeader("Accept-Ranges", "bytes");
     response->setBody(fileBuffer);
 }
 
 void    Http::responsePost(std::string root)
 {
+    std::string postContentType;
+    //TODO: запихнуть в отдельный метод поиска в response; или нет
+    postContentType = request->getHeaderValue("Content-Type");
+    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
+    {
+        
+
+        std::cout << postContentType << std::endl << std::endl;
+        std::cout << request->getBody() << std::endl;
+    }
+    else if (postContentType.compare("multipart/form-data"))
+    {
+        std::cout << postContentType << std::endl << std::endl;
+    }
 
 }
 
@@ -102,9 +123,15 @@ void    Http::prepareResponse(std::string root)
         responseGet(root);
     }
     else if (request->getMethod() == request->stringToMethod("POST"))
+    {
+        std::cout << "POSTPOSTPOST" << std::endl;
         responsePost(root);
+    }
     else if (request->getMethod() == request->stringToMethod("DELETE"))
+    {
+        std::cout << "DELDELDEL" << std::endl;
         responseDelete(root);
+    }
 }
 
 bool Http::isEndOfFile()
@@ -119,10 +146,10 @@ bool Http::isEndOfFile()
     }
 }
 
-std::string Http::getResponse() const
-{
-    return (response->responseToString());
-}
+// std::string Http::getResponse() const
+// {
+//     return (response->responseToString());
+// }
 
 std::string Http::getResponseHeader() const
 {

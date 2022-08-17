@@ -15,7 +15,7 @@ all: $(NAME)
 $(NAME) : $(OBJS)
 	$(CXX) $(CFLAGS) $(OBJS) -o $(NAME)
 
-$(OBJS_DIR)/%.o : %.cpp $(OBJS_DIR)
+$(OBJS_DIR)/%.o : %.cpp | $(OBJS_DIR)
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 $(OBJS_DIR):
