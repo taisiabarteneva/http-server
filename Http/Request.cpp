@@ -32,12 +32,16 @@ std::string Request::recieveStartLine(std::string& message, char delimiter)
     return word;
 }
 
-Request::Request(std::string message)
+void Request::initRequest(std::string message)
 {
     method = stringToMethod(recieveStartLine(message, ' '));
     target = recieveStartLine(message, ' ');
     version = recieveStartLine(message, '\n') + "\n";
     recieveHeaders(message);
+}
+
+Request::Request()
+{
 }
 
 Request::~Request()

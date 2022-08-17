@@ -214,18 +214,28 @@ int Core::readFromClient(int conn, char* buffer, size_t size)
     bzero((void *)buf, sizeof(buf));
     recv(conn, buffer, (int)size, 0);
     
-    http.sendMessage(buffer);
+    http.processMessage(buffer);
     return 0; // ToDo
 }
 
 int Core::sendToClient(int conn, const char *buffer, size_t size)
 {
-    std::string response = http.getResponse();
-    response = "HTTP/1.1 200 OK\nContent-Length: 5\nContent-Type: text/html\r\n\r\nhello";
-    std::cout << "THIS IS A RESPONSE : " << response << std::endl;
+    std::string response = http.getResponseHeader();
+    // response = "HTTP/1.1 200 OK\nContent-Length: 5\nContent-Type: text/html\r\n\r\nhello";
+    std::cout << "THIS IS A RESPONSE : \n\n" << response << std::endl;
     // get bytes and send it back to the client
-    return send(conn, response.c_str(), strlen(response.c_str()), 0);
+    std::cout << "THIS IS BODY::\n\n" << http.getResponseBody().c_str() << std::endl;
+    send(conn, response.c_str(), strlen(response.c_str()), 0);
+    http.recieveDataFromFile();
+    while (!http.isEndOfFile())
+    {
+        // std::cout << "PIZDEC" << std::endl;
+        send(conn, http.getResponseBody().c_str(), strlen(http.getResponseBody().c_str()), 0);
+        http.recieveDataFromFile();
+
+    }
     // return send(conn, http.getResponseBody().c_str(), strlen(http.getResponseBody().c_str()), 0);
+    return 0;
 }
 
 /* ------------------------ private methods ------------------------ */

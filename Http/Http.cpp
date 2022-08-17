@@ -1,11 +1,16 @@
 #include "Http.hpp"
 
-void Http::sendMessage(std::string message/*, std::string(or struct) source*/)
+void Http::processMessage(std::string message/*, std::string(or struct) source*/)
 {
-    request = new Request(message);
-    response = new Response();
+    request->initRequest(message);
     bytes = BUFFER_SIZE;
     prepareResponse("resources"); /* source */
+}
+
+Http::Http()
+{
+    request = new Request();
+    response = new Response();
 }
 
 Http::~Http()
@@ -56,25 +61,26 @@ void    Http::responseError(std::string code, std::string path)
 void    Http::responseGet(std::string root)
 {
     fileName = root + request->getURI(); //TODO: filename from GET
+    std::cout << fileName << std::endl;
     openFile(fileName);
-    if (reader.fail())
-    {
-        if (!access(fileName.c_str(), F_OK))
-        {
-            std::cerr << "Permission denied" << std::endl;
-            responseError("403", response->getErrorPage("403"));
-        }
-        else
-        {
-            std::cerr << "Bad file" << std::endl;
-            responseError("404", response->getErrorPage("404"));
-        }
-    }
-    else
-    {
+    // if (reader.fail())
+    // {
+    //     if (!access(fileName.c_str(), F_OK))
+    //     {
+    //         std::cerr << "Permission denied" << std::endl;
+    //         responseError("403", response->getErrorPage("403"));
+    //     }
+    //     else
+    //     {
+    //         std::cerr << "Bad file" << std::endl;
+    //         responseError("404", response->getErrorPage("404"));
+    //     }
+    // }
+    // else
+    // {
         response->setCode("200");
         response->setStatus(response->statusCodes[200]);
-    }
+    // }
 
     response->setHeader("Content-Type", response->getMIME()); // TODO: подготовить файл
     response->setHeader("Content-Length", response->getFileSize());
@@ -140,10 +146,10 @@ bool Http::isEndOfFile()
     }
 }
 
-std::string Http::getResponse() const
-{
-    return (response->responseToString());
-}
+// std::string Http::getResponse() const
+// {
+//     return (response->responseToString());
+// }
 
 std::string Http::getResponseHeader() const
 {
