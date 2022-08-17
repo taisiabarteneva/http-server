@@ -33,6 +33,7 @@ public:
     std::string getURI() const;
     std::string getVersion() const;
     std::map<std::string, std::string> getHeaders() const;
+    std::string getHeaderValue(std::string key);
     std::string getBody() const;
     std::string toString();
     std::string methodToString(Method method);

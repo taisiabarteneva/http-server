@@ -8,7 +8,7 @@ void Request::recieveHeaders(std::string& message)
     std::string tmp_value;
     std::pair<std::string, std::string> vec_header;
     std::string::size_type pos;
-    while (message.compare("\r\n"))
+    while (message.compare("\r\n")) //TODO: здесь может упасть если нет тела
     {
         endOfLine = message.find("\r\n");
         header = message.substr(0, endOfLine);
@@ -21,7 +21,8 @@ void Request::recieveHeaders(std::string& message)
         headers.insert(vec_header);
         message.erase(0, endOfLine + 2);
     }
-    
+    message.erase(0, 2);
+    body = message;
 }
 
 std::string Request::recieveStartLine(std::string& message, char delimiter)
@@ -77,6 +78,11 @@ std::string Request::getVersion() const
 std::map<std::string, std::string> Request::getHeaders() const
 {
     return this->headers;
+}
+
+std::string Request::getHeaderValue(std::string key)
+{
+    return (headers.find(key)->second);
 }
 
 std::string Request::getBody() const

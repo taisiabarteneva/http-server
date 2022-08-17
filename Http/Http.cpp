@@ -45,7 +45,7 @@ void    Http::responseError(std::string code, std::string path)
 {
     response->setCode(code);
     response->setStatus(response->statusCodes[atoi(code.c_str())]);
-    response->setHeader("Connection", "keep-alive");
+    response->setHeader("Connection", "keep-alive"); //TODO: ???
     openFile(path);
     if (reader.fail())
     {
@@ -78,13 +78,28 @@ void    Http::responseGet(std::string root)
 
     response->setHeader("Content-Type", response->getMIME()); // TODO: подготовить файл
     response->setHeader("Content-Length", response->getFileSize());
-    response->setHeader("Connection", "close");
+    response->setHeader("Connection", "close"); //TODO: ???
     response->setHeader("Accept-Ranges", "bytes");
     response->setBody(fileBuffer);
 }
 
 void    Http::responsePost(std::string root)
 {
+    std::string postContentType;
+    //TODO: запихнуть в отдельный метод поиска в response; или нет
+    postContentType = request->getHeaderValue("Content-Type");
+    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
+    {
+        
+
+        std::cout << postContentType << std::endl << std::endl;
+        std::cout << request->getBody() << std::endl;
+    }
+    else if (postContentType.compare("multipart/form-data"))
+    {
+        std::cout << postContentType << std::endl << std::endl;
+    }
 
 }
 
@@ -102,9 +117,15 @@ void    Http::prepareResponse(std::string root)
         responseGet(root);
     }
     else if (request->getMethod() == request->stringToMethod("POST"))
+    {
+        std::cout << "POSTPOSTPOST" << std::endl;
         responsePost(root);
+    }
     else if (request->getMethod() == request->stringToMethod("DELETE"))
+    {
+        std::cout << "DELDELDEL" << std::endl;
         responseDelete(root);
+    }
 }
 
 bool Http::isEndOfFile()
