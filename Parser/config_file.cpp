@@ -1,6 +1,5 @@
 #include "config_file.hpp"
 #include "config_utils.hpp"
-#include "../Core/Core.hpp"
 
 #define DEFAULT_IP_PORT "127.0.0.1:8080";
 
@@ -39,7 +38,7 @@ void ConfigFile::setConfigModules() {
 	modules["cgi_ext"] = CGI_EXT;
 	modules["cgi_path"] = CGI_PATH;
 	modules["authentication"] = AUTHENTICATION;
-	modules["error_page"] = ERROR_PAGE;
+	modules["error"] = ERROR;
 	modules["location"] = LOCATION;
 	modules["}"] = BRACKET;
 }
@@ -222,7 +221,7 @@ bool    ConfigFile::checkIsIndex(ConfigFlags &flags, vector<string> &words, map<
 }
 
 bool    ConfigFile::checkIsErrorPage(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
-	if (flags.check_server && words.size() == 3) { // error_page code html
+	if (flags.check_server && words.size() == 3) { // error code html
 		if (config_file.count(words[1]) == 1)
 		{
 			cout << "20" << endl;
@@ -406,7 +405,7 @@ void ConfigFile::parsingConfigFile(const string &file) {
 			case LOCATION:
 				checkIsLocation(utils_flags, str_words);
 				break;
-			case ERROR_PAGE:
+			case ERROR:
 				checkIsErrorPage(utils_flags, str_words, this->config_file);
 				break;
 			case CGI_PATH:
@@ -478,7 +477,7 @@ void    ConfigFile::parsingLocation(vector<string>& words, ConfigFlags& loc_util
         case INDEX:
                 checkIsIndex(loc_utils_flags, words, tmp_config);
             break;
-        case ERROR_PAGE:
+        case ERROR:
                 checkIsErrorPage(loc_utils_flags, words, tmp_config);
             break;
         case CGI_PATH:
