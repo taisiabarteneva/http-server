@@ -17,7 +17,7 @@
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <netdb.h>
-# include "../Parser/location.hpp"
+# include "../Parser/Location.hpp"
 # include "../Server/Server.hpp"
 
 # define BUF_LEN        1024
