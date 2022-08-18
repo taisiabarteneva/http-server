@@ -49,7 +49,7 @@ public:
     bool    checkIsCgiPath(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
     string  checkMaintainCgiExtension(ConfigFlags &flags, string word, map<string, string>& config);
 
-    Server              createNewServer(string ip_port, vector<Location>& locations);
+    Server              createNewServer(string ip_port, vector<Location> locations);
     Location            createNewLocation(map<string, string>& config);
 	vector<Location>    getAllLocations();
 	vector<Server>      getAllServers();
@@ -62,7 +62,7 @@ private:
 	vector<string>              all_listen;
     vector<string>              cgi_extension;
 	vector<Location>			all_locations;
-    vector<Server>              all_servers;
+    vector<Server>            	all_servers;
 };
 
 #endif

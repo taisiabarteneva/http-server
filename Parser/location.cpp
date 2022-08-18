@@ -54,7 +54,7 @@ Location::Location(const Location& location) {
 
 Location::~Location() {}
 
-Location& Location::operator=(const Location& location) {
+Location & Location::operator=(const Location& location) {
     if (this != &location) {
         ip_port = location.ip_port;
         path = location.path;
@@ -67,6 +67,7 @@ Location& Location::operator=(const Location& location) {
         index = location.index;
         allow_methods = location.allow_methods;
         errors = location.errors;
+
 //        this_location = location.this_location;
 //        authentication = location.authentication;
     }

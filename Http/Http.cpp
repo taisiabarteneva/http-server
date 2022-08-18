@@ -13,6 +13,8 @@ Http::Http()
     response = new Response();
 }
 
+// toDo: copy constructor
+
 Http::~Http()
 {
     if (reader.is_open())

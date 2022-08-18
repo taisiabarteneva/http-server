@@ -11,17 +11,18 @@
 // #include <fcntl.h>
 // #include <vector>
 // #include "Net/Net.hpp"
-#define LOCALHOST "127.0.0.1"
 
-#include "Core/Core.hpp"
-#include "Http/Http.hpp"
-#include "Parser/config_file.hpp"
+# define LOCALHOST "127.0.0.1"
+
+# include "Core/Core.hpp"
+# include "Http/Http.hpp"
+# include "Parser/config_file.hpp"
 
 int main(int argc, char** argv)
 {
-	if (argc != 1)
+	if (argc != 2)
 	{
-		std::cerr << "Usage:\n./run {config__file}.cfg\n";
+		std::cerr << "Usage:\n\t./run {config__file}.cfg\n";
 		exit(EXIT_FAILURE); 
 	}
 	Core core(argv[1]);

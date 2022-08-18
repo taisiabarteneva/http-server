@@ -73,7 +73,6 @@ void ConfigFile::openConfigFile(const string &file) {
 		cout << "2" << endl;
 		exit(EXIT_FAILURE);
 	}
-
 	parsingConfigFile(file);
 }
 
@@ -240,10 +239,18 @@ bool    ConfigFile::checkClosingBracket(ConfigFlags &flags, vector<string> &word
 		flags.check_server = false;
 		flags.check_all_read = true;
 		flags.check_root_location = false;
-
+		
         Server server = createNewServer(all_listen.back(), all_locations);
-        all_servers.push_back(server);
 
+		all_servers.push_back(server);
+		// ------------------
+		// vector<Server *>::iterator it = all_servers.begin();
+    	// while (it != all_servers.end())
+    	// {
+        // 	cout << "server's ip_port: " << (*it)->getAddress() << endl;
+		// 	it++;
+		// }
+		// -------------------
 		config_file.clear();
 		all_locations.clear();
 		setDefaultConfigValues(config_file);
@@ -264,9 +271,10 @@ bool ConfigFile::checkLocationClosingBracket(ConfigFlags &loc_flags, vector<stri
         flags.is_opening_bracket = false;
 
         Location loc = createNewLocation(config);
+		
         all_locations.push_back(loc);
-
-        config.clear();
+        
+		config.clear();
 	    setDefaultConfigValues(config);
         words.clear();
         return true;
@@ -275,8 +283,9 @@ bool ConfigFile::checkLocationClosingBracket(ConfigFlags &loc_flags, vector<stri
     exit(EXIT_FAILURE);
 }
 
-Server ConfigFile::createNewServer(string ip_port, vector<Location>& locations) {
-	Server server = Server(ip_port, locations);
+Server ConfigFile::createNewServer(string ip_port, vector<Location> locations) { 
+
+	Server server(ip_port, locations);
 	return server;
 }
 
