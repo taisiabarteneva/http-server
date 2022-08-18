@@ -1,4 +1,4 @@
-#include "location.hpp"
+#include "Location.hpp"
 
 Location::Location(map<string, string>& loc) {
     map<string, string>::iterator it_loc = loc.begin();

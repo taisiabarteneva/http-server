@@ -1,5 +1,5 @@
-#include "config_file.hpp"
-#include "config_utils.hpp"
+#include "ConfigFile.hpp"
+#include "ConfigUtils.hpp"
 
 #define DEFAULT_IP_PORT "127.0.0.1:8080";
 
