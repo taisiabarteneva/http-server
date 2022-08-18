@@ -59,7 +59,7 @@ void    Cgi::prepareCgiArgs() {
     args = new char*[3];
     args[0] = new char[request.getLocation.getCgiPath().size() + 1];
     args[0] = strcpy(args[0], request.getLocation.getCgiPath().c_str());
-    args[1] = new char[ + 1];
+    args[1] = new char[abs_path.size() + 1];
     args[1] = strcpy(args[1], abs_path.c_str());
     args[2] = NULL;
 }
