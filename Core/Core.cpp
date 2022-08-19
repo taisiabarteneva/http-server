@@ -23,12 +23,12 @@ Core::Core(char *config)
     //     ++it;
     // }
 
-    for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
-    {
-        std::cout << "setting up server at " << it->getAddress() << std::endl;
-        it->setupServer();
-        it->run();
-    }
+    // for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
+    // {
+    //     std::cout << "setting up server at " << it->getAddress() << std::endl;
+    //     it->setupServer();
+    //     it->run();
+    // }
     servers[0].setupServer(); servers[0].run(); // 
 }
 

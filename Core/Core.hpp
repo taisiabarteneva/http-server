@@ -26,12 +26,9 @@
 class Core
 {
     private:
-
         std::vector<Server>    servers;
-
     
     public:
-    
         Core(char* config);
         Core(const Core & rhs);
         const Core & operator=(const Core & rhs);

@@ -6,7 +6,7 @@ Server::Server(std::string & address, std::vector<Location> locations)
 	_address = address;
 	_locations = locations;
 	enable_mode = 1;
-	connectSocket = -1;
+	// connectSocket = 0;
 }
 
 Server::Server(const Server & rhs)
@@ -28,7 +28,7 @@ const Server & Server::operator=(const Server & rhs)
 		strcpy(buf, rhs.buf);
 		_locations = rhs._locations;
 	}
-	
+
 	return *this;
 }
 
@@ -57,111 +57,66 @@ void Server::setupServer(void)
 	fillServerStruct();
 	bindListenSock();
 	createQueue();
-	initSocketSet();
+	initPollFdStruct();
 }
 
 /* 
-	# define POLLIN			0x001		// There is data to read.
-	# define POLLPRI		0x002		// There is urgent data to read.
-	# define POLLOUT		0x004		// Writing now will not block.
+	The poll() API is more efficient than the select() API and therefore poll() is always recommended over select() 
+	- https://www.ibm.com/docs/en/i/7.4?topic=ssw_ibm_i_74/apis/poll.htm
+
+	# define POLLIN			0x001		// data other than high-priority data may be read without blocking
+	# define POLLPRI		0x002		// high priority data may be read without blocking
+	# define POLLOUT		0x004		// normal data may be written without blocking
+	# define POLLERR     	0x008		// an error has occurred (revents only)
+    # define POLLHUP     	0x010		// device has been disconnected (revents only)
+   	# define POLLNVAL    	0x020		// invalid fd member (revents only).
+
+	int   poll(struct pollfd fds[], nfds_t nfds, int timeout);
+	  	1 - the set of file descriptors to be monitored 
+		2 - specify the number of items in the fds array
+		3 - if the value of timeout is -1, poll() will block until a requested event occurs or until the call is interrupted
 */
 
 void Server::run(void)
 {
-	int res;
-    int status;
-    int i;
-	bool end;
+	int i, status;
+	bool end = false;
 
-	do
+	while (true)
 	{
-		/* 
-            it waits for one of a set of file descriptors to become ready to perform I/O
-            1 - the set of file descriptors to be monitored 
-            2 - specify the number of items in the fds array
-            3 - specifies the number of milliseconds that poll() should block waiting for a file descriptor to become
-                ready
-                specifying a negative value in timeout means an infinite timeout
-            функция блокируется до тех пор, пока во входящем сокете не появятся данные для чтения; изначально проверяем только слушающий сокет
-        */
-		res = poll(activeSet, numSet, -1);
-		if (res <= 0)
-        {
-            std::cerr << "[Error] : poll() system call failed\n";
-            exit(EXIT_FAILURE);
-        } 
-		else if (res > 0)
+		std::cout << "Poll\n";
+		status = poll(activeSet, numSet, INFINITE);
+		if (status < 0)
 		{
-			for (i = 0; i < numSet; i++)
+			std::cerr << "[Error] : poll() system call failed\n";
+            exit(EXIT_FAILURE);
+		}
+		// numset additional variable 
+		std::cout << "Poll\n";
+		for (i = 0; i < numSet; i++)
+		{
+			if (activeSet[i].revents != POLLIN && activeSet[i].revents != POLLOUT \
+					&& activeSet[i].revents != 0)
 			{
-				/* 
-					find the active POLL IN event and determine 
-					whether it's a listening or connected socket 
-				*/
-				if (activeSet[i].fd == listenSocket)
-				{
-					/*
-						accept all incoming connections that are quequed up on the listening socket, 
-							if there are any
-					*/
-					do
-					{
-						connectSocket = accept(listenSocket, NULL, NULL);
-						if (connectSocket < 0)
-						{
-							if (errno != EWOULDBLOCK)
-							{
-								std::cerr << "[Error] : accept() system call failed\n";
-								end = true;
-							}
-							break ;
-						}
-						if (numSet < SOMAXCONN)
-						{
-							/* add new connection to pollfd struct */
-							activeSet[numSet].fd = connectSocket;
-							activeSet[numSet].events = POLLIN;
-							numSet++;
-						} 
-						else 
-						{
-							std::cerr << "[Error] : queue is full\n";
-							close(connectSocket);
-						}
-					} 	while (connectSocket != -1);
-				}
-				else if (activeSet[i].revents & POLLIN) 		/* the connection was already established  */
-				{
-					// std::cout << "Poll In \n";
-					status = readFromClient(activeSet[i].fd, buf, sizeof(buf) + 1);
-					if (status < 0)
-					{
-						closeConnection(i);
-					} 
-					else 
-					{
-						activeSet[i].events = POLLOUT;
-					}
-				}
-				else if (activeSet[i].revents & POLLOUT)
-                {
-					// std::cout << "Poll Out \n";
-					// std::cout << "NumSet : " << numSet << std::endl;
-                    sendToClient(activeSet[i].fd, buf, BUF_LEN);
-                    activeSet[i].revents = POLLIN;
-                }
-				else if (activeSet[i].revents != POLLIN && activeSet[i].revents != POLLOUT)
-				{
-					std::cerr << "[Error] : socket error\n";
-					closeConnection(i);
-				}
+				fprintf(stdout, "socket [%d] revents : %d\n", activeSet[i].fd, activeSet[i].revents);
+				std::cerr << "[Error] : unexpected socket status, closing the connection...\n";
+				this->closeConnection(activeSet[i], i);
+				continue ;
+			}
+			else if (activeSet[i].fd == this->listenSocket)
+			{
+				this->acceptNewConnection();
+			}
+			else
+			{
+				this->handleExistingConnection(activeSet[i]);
 			}
 		}
-	} while (end == false);
+	}
 	cleanAllSockets();
 }
 
-/* ------------------------------------------- private methods */
+// /* ------------------------------------------- private methods */
 Server::Server()
 {}
 
@@ -203,9 +158,12 @@ int Server::fillServerStruct(void)
         return 1;
 	memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-	addr.sin_len = sizeof(addr);
     addr.sin_port = htons(atoi(port));
-	/* inet_aton() converts the Internet host address cp from the IPv4 numbers-and-dots notation into binary form */
+	addr.sin_len = sizeof(addr);
+	bzero(&(addr.sin_zero), 8);
+	/* 
+		inet_aton() converts the Internet host address cp from the IPv4 numbers-and-dots notation into binary form 
+	*/
 	if (inet_aton(ipv4, &addr.sin_addr) == 0)
 	{
 		std::cerr << "[Error] : invalid address\n";
@@ -225,7 +183,8 @@ void Server::bindListenSock(void)
     if (bind(listenSocket, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         std::cerr << "[Error] : bind() system call failed\n";
-        exit(EXIT_FAILURE);
+		close(listenSocket);
+	    exit(EXIT_FAILURE);
     }
 }
 
@@ -240,16 +199,20 @@ void Server::createQueue(void)
     */
     if (listen(listenSocket, SOMAXCONN) != 0)
     {
-        fprintf(stderr, "[Error] : listen() call failed\n");
+        std::cerr<< "[Error] : listen() call failed\n";
+		close(listenSocket);
         exit(EXIT_FAILURE);
     }
 }
 
-void Server::initSocketSet()
+void Server::initPollFdStruct()
 {
+	memset(activeSet, 0, sizeof(activeSet));
+	/*
+		add the listening socket to the array  
+	*/
 	activeSet[0].fd = listenSocket;
 	activeSet[0].events = POLLIN;
-	activeSet[0].revents = 0;
 	numSet = 1;
 }
 
@@ -274,30 +237,74 @@ int Server::readFromClient(int conn, char* buffer, size_t size)
 {
     bzero((void *)buf, sizeof(buf));
     recv(conn, buffer, (int)size, 0);
-    http.processMessage(buffer);
-    return 1; // ToDo
+    return 0; // ToDo
 }
 
 int Server::sendToClient(int conn, const char *buffer, size_t size)
 {
-    std::string response = http.getResponseHeader();
+	std::string response;
+
     response = "HTTP/1.1 200 OK\nContent-Length: 5\nContent-Type: text/html\r\n\r\nhello";
-    // std::cout << "THIS IS A RESPONSE : \n\n" << response << std::endl;
-    // get bytes and send it back to the client
-    // std::cout << "THIS IS BODY::\n\n" << http.getResponseBody().c_str() << std::endl;
     send(conn, response.c_str(), strlen(response.c_str()), 0);
-    // http.recieveDataFromFile();
-    // while (!http.isEndOfFile())
-    // {
-    //     send(conn, http.getResponseBody().c_str(), strlen(http.getResponseBody().c_str()), 0);
-    //     http.recieveDataFromFile();
-    // }
     return 0; // ToDo
 }
 
-void Server::closeConnection(int i)
+void Server::acceptNewConnection(void)
 {
-	close(activeSet[i].fd);
+	std::cout << "listening socket is readable\n";
+	while (true)
+	{
+				std::cout << "Accept\n";
+		this->connectSocket = accept(listenSocket, NULL, NULL);
+				std::cout << "Accept\n";
+		if (connectSocket < 0)
+		{
+			if (errno != EWOULDBLOCK)
+			{
+				std::cerr << "[Error] : accept() system call failed\n";
+				exit(EXIT_FAILURE);
+			}
+			break ;
+		}
+		// std::cout << "new incoming connection -- " << connectSocket << std::endl;
+		activeSet[numSet].fd = connectSocket;
+		activeSet[numSet].events = POLLIN;
+		activeSet[numSet].revents = 0; // 
+		numSet++;
+	}
+}
+
+void Server::handleExistingConnection(struct pollfd connection)
+{
+	int status;
+
+	/* обнаружили событие, обнулим revents, чтобы можно было переиспользовать структуру */
+	if (connection.revents & POLLIN)
+	{
+				std::cout << "Receive\n";
+		status = this->readFromClient(connection.fd, buf, sizeof(buf));
+				std::cout << "Receive\n";
+		if (status == 0)
+		{
+			connection.revents = POLLOUT;
+		}
+	}
+	else if (connection.revents & POLLOUT)
+	{
+				std::cout << "Send\n";
+		status = this->sendToClient(connection.fd, buf, sizeof(buf));
+				std::cout << "Send\n";
+		if (status == 0)
+		{
+			connection.revents = POLLIN;
+		}
+	}
+	// connection.revents = 0;
+}
+
+void Server::closeConnection(struct pollfd connection, int i)
+{
+	close(connection.fd);
 	activeSet[i].fd = -1;
 	for (int i = 0; i < numSet; i++)
 	{

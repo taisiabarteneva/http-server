@@ -21,7 +21,30 @@
 # include "../Http/Http.hpp"
 
 # define BUF_LEN        1024
+# define INFINITE 		-1
 # define PARSE_ERROR    -1
+
+/*
+	struct pollfd 
+	{
+		int fd;				// the following descriptor being polled 
+		short events;		// the input event flags
+		short revents;		// the output event flags
+	}; 
+	nfds_t — an unsigned integer type (long) used for the number of file descriptors
+*/
+
+/*
+	struct sockaddr_in6 
+	{
+		uint8_t          sin6_len;
+		sa_family_t      sin6_family;
+		in_port_t        sin6_port;
+		uint32_t         sin6_flowinfo;
+		struct in6_addr  sin6_addr;
+		uint32_t         sin6_scope_id;
+	}; 
+*/
 
 class Server 
 {
@@ -47,13 +70,14 @@ class Server
 		int parseAddress(void);
 		void bindListenSock(void);
 		void createQueue(void);
-		void initSocketSet(void);
+		void initPollFdStruct(void);
 		void handlePollIn(int fd);
 		int readFromClient(int conn, char* buffer, size_t size);
 		int sendToClient(int conn, const char *buffer, size_t size);
-		void closeConnection(int i);
+		void closeConnection(struct pollfd connection, int i);
 		void cleanAllSockets(void);
-
+		void acceptNewConnection(void);
+		void handleExistingConnection(struct pollfd connection);
 
 		std::vector<Location> 	_locations;
 		std::string             _address;
@@ -64,10 +88,9 @@ class Server
 		char					port[4];
 		struct sockaddr_in  	addr;
 		struct pollfd       	activeSet[SOMAXCONN];
-		int   		            numSet;
+		nfds_t   		        numSet;
 		char                	buf[BUF_LEN];
 		Http					http;
-
 };
 
 
