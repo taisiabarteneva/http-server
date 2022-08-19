@@ -10,8 +10,8 @@
 #include <list>
 #include <vector>
 
-#include "config_utils.hpp"
-#include "location.hpp"
+#include "ConfigUtils.hpp"
+#include "Location.hpp"
 #include "../Core/Core.hpp"
 
 using namespace std;

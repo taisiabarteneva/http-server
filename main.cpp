@@ -16,7 +16,7 @@
 
 # include "Core/Core.hpp"
 # include "Http/Http.hpp"
-# include "Parser/config_file.hpp"
+# include "Parser/ConfigFile.hpp"
 
 int main(int argc, char** argv)
 {

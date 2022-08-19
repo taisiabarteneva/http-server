@@ -1,5 +1,5 @@
 #include "Core.hpp"
-#include "../Parser/config_file.hpp"
+#include "../Parser/ConfigFile.hpp"
 
 Core::Core(char *config)
 {

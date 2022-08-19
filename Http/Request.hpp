@@ -40,7 +40,7 @@ public:
     std::string methodToString(Method method);
     Method stringToMethod(std::string method);
 
-    
+
 
 };
 
