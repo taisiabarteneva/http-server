@@ -11,22 +11,27 @@
 // #include <fcntl.h>
 // #include <vector>
 // #include "Net/Net.hpp"
-#define LOCALHOST "127.0.0.1"
 
-#include "Core/Core.hpp"
-#include "Http/Http.hpp"
-#include "Parser/config_file.hpp"
+# define LOCALHOST "127.0.0.1"
+
+# include "Core/Core.hpp"
+# include "Http/Http.hpp"
+# include "Parser/ConfigFile.hpp"
 
 int main(int argc, char** argv)
 {
-	Core myCore(argv);
-	myCore.createListenSock();
-	myCore.fillServerStruct("0.0.0.0:8080");
-	myCore.bindListenSock();
-	myCore.createQueue();
-	myCore.initSocketSet();
-	myCore.stateManager();
-
+	if (argc != 2)
+	{
+		std::cerr << "Usage:\n\t./run {config__file}.cfg\n";
+		exit(EXIT_FAILURE); 
+	}
+	Core core(argv[1]);
+	// myCore.createListenSock();
+	// myCore.fillServerStruct("0.0.0.0:8080");
+	// myCore.bindListenSock();
+	// myCore.createQueue();
+	// myCore.initSocketSet();
+	// myCore.stateManager();
 
 	// char buffer[30000];
 	// int socket_fd, accept_fd;
