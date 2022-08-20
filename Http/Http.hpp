@@ -1,6 +1,8 @@
 #ifndef HTTP_HPP
 # define HTTP_HPP
-# define BUFFER_SIZE 2000
+# include "Defines.hpp"
+# define HEADERS_SIZE 16384
+# define REQUEST_SIZE 16384
 
 # include <map>
 # include <string>
@@ -13,33 +15,18 @@
 class Http
 {
     private:
-        Request* request;
-        Response* response;
-        std::ifstream reader;
-        std::streamsize bytes;
-        std::string fileName;
-        //config file;
-    public: //TODO: debug. delete
-        void recieveDataFromFile();
-        void prepareResponse(std::string root);
-        void openFile(std::string file);
-        void responseGet(std::string root);
-        void responsePost(std::string root);
-        void responseDelete(std::string root);
-        void responseError(std::string code, std::string path);
+        static std::map<int , std::pair<Request*, Response*> > connections;
+        int recv_msg(int conn, char* buffer, size_t size);
+        int send_msg(int conn, const char *buffer, size_t size);
+        void makeRequest(int fd, Request *request);
+        //config file;??
 
     public:
-        char fileBuffer[BUFFER_SIZE];
-        void processMessage(std::string request);
         Http();
         ~Http();
-        // std::string getResponse() const; //TODO: old version. Not supported
-        std::string getRequest() const;
-        std::string getResponseHeader() const;
-        std::string getResponseBody() const;
-        // Http createResponce();
-        std::streamsize getBytes() const;
-        bool isEndOfFile();
+
+        bool acceptRequest(int fd);
+        bool getResponse(int fd);
 };
 
 

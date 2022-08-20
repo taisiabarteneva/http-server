@@ -2,8 +2,14 @@
 # define RESPONSE_HPP
 
 # define RESPONSE_VERSION "HTTP/1.1"
+# include "Defines.hpp"
+# define HEADERS_SIZE 16384
 
 # include <sstream>
+# include <cstring>
+# include <iostream>
+# include <unistd.h>
+# include <fstream>
 # include "Request.hpp"
 
 enum StartLine {
@@ -15,42 +21,57 @@ enum StartLine {
 class Response
 {
 private:
-    int responseCode; //TODO: а нужен?
+    std::ifstream reader;
+    std::streamsize bytes;
+    Request* request;
+    bool firstResponse;
+    size_t bytesRead;
+    char body[BUFFER_SIZE];
     std::map<StartLine, std::string> startLine;
     std::map<std::string, std::string> headers;
     std::map<std::string, std::string> mimeTypes;
     std::map<std::string, std::string> errors;
-    char* body;
     std::string fileSize;
     std::string fileType;
     std::ostringstream stream;
 
-    std::string getHeaderStrings();
-    void codeStringToInt();
+
+    void        responseGet(std::string root);
+    void        openFile(std::string file);
+    void        recieveDataFromFile();
+    std::string getHeaders(); //Debug and other
+    void        responsePost(std::string root);
+    void        responseDelete(std::string root);
+    void        responseError(std::string code, std::string path);
     void initStatusCodes();
     void initMIMETypes();
     void initResponsePages();
 
-public:
-    std::map<int, std::string> statusCodes;
-
-    Response();
-    ~Response();
-    std::string responseToString();
-    std::string responseHeaderToString();
-    std::string responseBodyToString();
     void setVersion(std::string& version);
     void setCode(std::string code);
     void setStatus(std::string &status);
     void setHeader(std::string key, std::string value);
-    void setBody(char* body);
     void setFileSize(int size);
     void setFileType(std::string type);
-    char* getBody() const;
     std::string getHeaderValue(std::string key);
     std::string getErrorPage(std::string code);
     std::string getFileSize() const;
     std::string getMIME() const;
+
+public:
+    std::map<int, std::string> statusCodes;
+    Response();
+    ~Response();
+    std::string prepareResponse(std::string root, Request* request);
+    void        resetData();
+
+    bool        isFirstResponse();
+    bool        isRead();
+    char        *getBody();
+    int         getBodySize();
+    int         getResponseSize();
+    size_t      getBytesRead();
+    std::string getHeaderStrings();
 };
 
 #endif

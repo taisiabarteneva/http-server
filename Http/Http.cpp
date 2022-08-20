@@ -1,172 +1,63 @@
 #include "Http.hpp"
 
-void Http::processMessage(std::string message/*, std::string(or struct) source*/)
+std::map<int , std::pair<Request*, Response*> > Http::connections;
+
+int Http::send_msg(int conn, const char *buffer, size_t size)
 {
-    request->initRequest(message);
-    bytes = BUFFER_SIZE;
-    prepareResponse("resources"); /* source */
+    return send(conn, buffer, (int)size, 0);
+}
+int Http::recv_msg(int conn, char* buffer, size_t size)
+{
+    return recv(conn, buffer, (int)size, 0);
+}
+
+void Http::makeRequest(int fd, Request *request)
+{
+    request->setBytesRead(recv_msg(fd, request->getBuffer(), BUFFER_SIZE));
+    request->processRequest();
+    if (request->isBodyPresent())
+    {
+        // записать на сервак. Учитывай что в этот момент часть тела скорее всего будет считана. Размер bytesRead, буффер buffer.
+    }
+    //где то здесь идёт запись в файл в том случае, если нужный хедер присутствует и тело есть
+}
+
+bool Http::acceptRequest(int fd)
+{
+    if (connections.find(fd) == connections.end())
+        connections[fd] = std::make_pair(new Request, new Response);
+    makeRequest(fd, connections[fd].first);
+    return connections[fd].first->isRead();
+}
+
+bool Http::getResponse(int fd) // принять конфиг
+{
+    bool done;
+    Response* resp = connections[fd].second;
+    if (resp->isFirstResponse())
+    {
+        std::string head = resp->prepareResponse("resources", connections[fd].first);
+        send_msg(fd, head.c_str(), head.length());
+    }
+    else
+    {
+        char* buffer = resp->getBody();
+        int size = resp->getBodySize();
+        send_msg(fd, buffer, size);
+    }
+    done = resp->isRead();
+    if (done)
+    {
+        resp->resetData();
+        connections[fd].first->resetData();
+    }
+    return done;
 }
 
 Http::Http()
 {
-    request = new Request();
-    response = new Response();
 }
 
 Http::~Http()
 {
-    if (reader.is_open())
-        reader.close();
-    delete response;
-    delete request;
-}
-
-void    Http::openFile(std::string file)
-{
-    reader.clear();
-    reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
-    if (reader.fail())
-    {
-        std::cerr << "Open file failure" << std::endl;
-        return ; 
-    }
-    response->setFileSize(reader.tellg()); //TODO:: а что с большим файлом?
-    reader.seekg(0);
-    response->setFileType(file.substr(file.find(".") + 1));
-    reader.clear();
-}
-
-void Http::recieveDataFromFile()
-{
-    reader.read(fileBuffer, BUFFER_SIZE);
-    if (reader.bad())
-    {
-        std::cerr << "File reading fail" << std::endl; // TODO:??
-    }
-    bytes = reader.gcount();
-}
-
-void    Http::responseError(std::string code, std::string path)
-{
-    response->setCode(code);
-    response->setStatus(response->statusCodes[atoi(code.c_str())]);
-    response->setHeader("Connection", "keep-alive"); //TODO: ???
-    openFile(path);
-    if (reader.fail())
-    {
-        openFile(response->getErrorPage(code));
-    }
-}
-
-void    Http::responseGet(std::string root)
-{
-    fileName = root + request->getURI(); //TODO: filename from GET
-    std::cout << fileName << std::endl;
-    openFile(fileName);
-    // if (reader.fail())
-    // {
-    //     if (!access(fileName.c_str(), F_OK))
-    //     {
-    //         std::cerr << "Permission denied" << std::endl;
-    //         responseError("403", response->getErrorPage("403"));
-    //     }
-    //     else
-    //     {
-    //         std::cerr << "Bad file" << std::endl;
-    //         responseError("404", response->getErrorPage("404"));
-    //     }
-    // }
-    // else
-    // {
-        response->setCode("200");
-        response->setStatus(response->statusCodes[200]);
-    // }
-
-    response->setHeader("Content-Type", response->getMIME()); // TODO: подготовить файл
-    response->setHeader("Content-Length", response->getFileSize());
-    response->setHeader("Connection", "close"); //TODO: ???
-    response->setHeader("Accept-Ranges", "bytes");
-    response->setBody(fileBuffer);
-}
-
-void    Http::responsePost(std::string root)
-{
-    std::string postContentType;
-    //TODO: запихнуть в отдельный метод поиска в response; или нет
-    postContentType = request->getHeaderValue("Content-Type");
-    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
-    {
-        
-
-        std::cout << postContentType << std::endl << std::endl;
-        std::cout << request->getBody() << std::endl;
-    }
-    else if (postContentType.compare("multipart/form-data"))
-    {
-        std::cout << postContentType << std::endl << std::endl;
-    }
-
-}
-
-void    Http::responseDelete(std::string root)
-{
-
-}
-
-void    Http::prepareResponse(std::string root)
-{
-    //TODO: проверка файла
-    if (request->getMethod() == request->stringToMethod("GET"))
-    {
-        std::cout << "GETGETGET" << std::endl;
-        responseGet(root);
-    }
-    else if (request->getMethod() == request->stringToMethod("POST"))
-    {
-        std::cout << "POSTPOSTPOST" << std::endl;
-        responsePost(root);
-    }
-    else if (request->getMethod() == request->stringToMethod("DELETE"))
-    {
-        std::cout << "DELDELDEL" << std::endl;
-        responseDelete(root);
-    }
-}
-
-bool Http::isEndOfFile()
-{
-    if (reader.eof())
-    {
-        return (true);
-    }
-    else
-    {
-        return (false);
-    }
-}
-
-// std::string Http::getResponse() const
-// {
-//     return (response->responseToString());
-// }
-
-std::string Http::getResponseHeader() const
-{
-    return (response->responseHeaderToString());
-}
-
-std::string Http::getResponseBody() const
-{
-    return (response->getBody());
-}
-
-std::string Http::getRequest() const
-{
-    return (request->toString());
-}
-
-std::streamsize Http::getBytes() const
-{
-    return (bytes);
 }

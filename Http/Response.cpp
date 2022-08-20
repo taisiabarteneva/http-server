@@ -177,16 +177,170 @@ void Response::initResponsePages()
 
 Response::Response()
 {
+    firstResponse = false;
     startLine[VERSION] = RESPONSE_VERSION;
     initStatusCodes();
     initMIMETypes();
     initResponsePages();
+    bytes = 0;
+    bytesRead = 0;
+
 }
 
 Response::~Response()
 {
+    if (reader.is_open())
+        reader.close();
 }
 
+std::string Response::prepareResponse(std::string root, Request* request)
+{
+    this->request = request;
+    if (request->getMethod() == "GET")
+        responseGet(root);
+    return (getHeaders());
+}
+
+void    Response::responseGet(std::string root)
+{
+    std::string fileName = root + request->getURI(); //TODO: filename from GET
+    if (fileName == (root + "/"))
+        fileName = root + "/index.html";
+    // std::cout << fileName << std::endl; //TODO: debug
+    openFile(fileName);
+    if (reader.fail())
+    {
+        if (!access(fileName.c_str(), F_OK))
+        {
+            std::cerr << "Permission denied" << std::endl;
+            // responseError("403", response->getErrorPage("403"));
+        }
+        else
+        {
+            std::cerr << "Bad file" << std::endl;
+            // responseError("404", response->getErrorPage("404"));
+        }
+    }
+    else
+    {
+        setCode("200");
+        setStatus(statusCodes[200]);
+    }
+    setHeader("Content-Type", getMIME()); // TODO: подготовить файл
+    setHeader("Content-Length", getFileSize());
+    setHeader("Connection", "close"); //TODO: ???
+    setHeader("Accept-Ranges", "bytes");
+}
+
+// void    Response::responsePost(std::string root)
+// {
+//     std::string postContentType;
+//     //TODO: запихнуть в отдельный метод поиска в response; или нет
+//     postContentType = request->getHeaderValue("Content-Type");
+//     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+//     if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
+//     {
+        
+
+//         std::cout << postContentType << std::endl << std::endl;
+//         std::cout << request->getBody() << std::endl;
+//     }
+//     else if (postContentType.compare("multipart/form-data"))
+//     {
+//         std::cout << postContentType << std::endl << std::endl;
+//     }
+// }
+
+// void    Response::responseDelete(std::string root)
+// {
+
+// }
+
+// void    Response::responseError(std::string code, std::string path)
+// {
+//     response->setCode(code);
+//     response->setStatus(response->statusCodes[atoi(code.c_str())]);
+//     response->setHeader("Connection", "keep-alive"); //TODO: ???
+//     openFile(path);
+//     if (reader.fail())
+//     {
+//         openFile(response->getErrorPage(code));
+//     }
+// }
+
+void Response::recieveDataFromFile()
+{
+    reader.read(body, BUFFER_SIZE);
+    if (reader.bad())
+    {
+        std::cerr << "File reading fail" << std::endl; // TODO:??
+    }
+    bytes = reader.gcount();
+}
+
+
+void    Response::openFile(std::string file)
+{
+    reader.clear();
+    reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
+    if (reader.fail())
+    {
+        std::cerr << "Open file failure" << std::endl;
+        return ; 
+    }
+    setFileSize(reader.tellg()); //TODO:: а что с большим файлом?
+    reader.seekg(0);
+    setFileType(file.substr(file.find(".") + 1));
+    reader.clear();
+}
+
+bool Response::isFirstResponse()
+{
+    if (!firstResponse)
+    {
+        firstResponse = true;
+        return true;
+    }
+    return false;
+}
+
+std::string Response::getHeaders()
+{
+    std::string ret;
+    ret += startLine[VERSION] + " ";
+    ret += startLine[CODE] + " ";
+    ret += startLine[STATUS] + "\r\n";
+    ret += getHeaderStrings() + "\r\n";
+    
+    return ret;
+}
+
+char* Response::getBody()
+{
+    recieveDataFromFile();
+    return this->body;
+}
+
+int Response::getBodySize()
+{
+    return this->bytes;
+}
+
+bool Response::isRead()
+{
+    if (reader.eof())
+        return true;
+    return false;
+}
+
+void    Response::resetData()
+{
+    reader.close();
+    bytes = 0;
+    bytesRead = 0;
+    request = NULL;
+    firstResponse = false;
+}
 
 std::string Response::getHeaderStrings()
 {
@@ -196,32 +350,6 @@ std::string Response::getHeaderStrings()
         ret += it->first + ": " + it->second + "\r\n";
     }
     return ret;
-}
-
-std::string Response::responseToString()
-{
-    std::string ret;
-    ret += startLine[VERSION] + " ";
-    ret += startLine[CODE] + " ";
-    ret += startLine[STATUS] + "\r\n";
-    ret += getHeaderStrings() + "\r\n";
-    ret += body;
-    return ret;
-}
-
-std::string Response::responseHeaderToString()
-{
-    std::string ret;
-    ret += startLine[VERSION] + " ";
-    ret += startLine[CODE] + " ";
-    ret += startLine[STATUS] + "\r\n";
-    ret += getHeaderStrings() + "\r\n";
-    return ret;
-}
-
-char* Response::getBody() const
-{
-    return this->body;
 }
 
 void    Response::setVersion(std::string& version)
@@ -239,10 +367,6 @@ void    Response::setStatus(std::string &status)
 void    Response::setHeader(std::string key, std::string value)
 {
     this->headers.insert(std::make_pair(key, value));
-}
-void    Response::setBody(char* body)
-{
-    this->body = body;
 }
 
 void    Response::setFileSize(int size) //TODO:: а что с большим файлом?
@@ -287,4 +411,3 @@ std::string Response::getMIME() const
     }
     return mime;
 }
-
