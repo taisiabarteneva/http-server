@@ -6,7 +6,6 @@ Server::Server(std::string & address, std::vector<Location> locations)
 	_address = address;
 	_locations = locations;
 	enable_mode = 1;
-	// connectSocket = 0;
 }
 
 Server::Server(const Server & rhs)
@@ -20,7 +19,6 @@ const Server & Server::operator=(const Server & rhs)
 	{
 		_address = rhs._address;
 		listenSocket = rhs.listenSocket;
-		connectSocket = rhs.connectSocket;
 		enable_mode = rhs.enable_mode;
 		strcpy(ipv4, rhs.ipv4); strcpy(port, rhs.port);
 		addr = rhs.addr;
@@ -80,43 +78,49 @@ void Server::setupServer(void)
 void Server::run(void)
 {
 	int i, status;
-	bool end = false;
 
 	while (true)
-	{
-		std::cout << "Poll\n";
+	{		
+		/* 	
+			on success, poll() returns a non-negative value which is the
+			number of elements in the pollfds whose revents fields have been
+			set to a nonzero value, indincating an event or an error
+		*/
 		status = poll(activeSet, numSet, INFINITE);
 		if (status < 0)
 		{
 			std::cerr << "[Error] : poll() system call failed\n";
             exit(EXIT_FAILURE);
 		}
-		// numset additional variable 
-		std::cout << "Poll\n";
 		for (i = 0; i < numSet; i++)
 		{
-			if (activeSet[i].revents != POLLIN && activeSet[i].revents != POLLOUT \
-					&& activeSet[i].revents != 0)
+			/* for debugging purposes */
+			/* if (activeSet[i].revents != 0) 
+            {
+                printf("fd = %d; revents: %s%s\n", activeSet[i].fd,
+                        (activeSet[i].revents & POLLIN)  ? "POLLIN "  : "",
+                        (activeSet[i].revents & POLLOUT) ? "POLLOUT " : "");
+			} */
+			if (activeSet[i].revents != POLLIN && activeSet[i].revents != POLLOUT && \
+				activeSet[i].revents != 0)
 			{
-				fprintf(stdout, "socket [%d] revents : %d\n", activeSet[i].fd, activeSet[i].revents);
-				std::cerr << "[Error] : unexpected socket status, closing the connection...\n";
-				this->closeConnection(activeSet[i], i);
-				continue ;
+				std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
+				closeConnection(activeSet[i], i);
 			}
-			else if (activeSet[i].fd == this->listenSocket)
+			else if (activeSet[i].fd == listenSocket)
 			{
-				this->acceptNewConnection();
+				acceptNewConnection();
 			}
 			else
 			{
-				this->handleExistingConnection(activeSet[i]);
+				handleExistingConnection(activeSet[i]);
 			}
 		}
 	}
 	cleanAllSockets();
 }
 
-// /* ------------------------------------------- private methods */
+/* ------------------------------------------- private methods */
 Server::Server()
 {}
 
@@ -251,12 +255,11 @@ int Server::sendToClient(int conn, const char *buffer, size_t size)
 
 void Server::acceptNewConnection(void)
 {
-	std::cout << "listening socket is readable\n";
+	int 	connectSocket;
+
 	while (true)
 	{
-				std::cout << "Accept\n";
-		this->connectSocket = accept(listenSocket, NULL, NULL);
-				std::cout << "Accept\n";
+		connectSocket = accept(listenSocket, NULL, NULL);
 		if (connectSocket < 0)
 		{
 			if (errno != EWOULDBLOCK)
@@ -264,42 +267,38 @@ void Server::acceptNewConnection(void)
 				std::cerr << "[Error] : accept() system call failed\n";
 				exit(EXIT_FAILURE);
 			}
+			/* connection already exist */
 			break ;
 		}
-		// std::cout << "new incoming connection -- " << connectSocket << std::endl;
 		activeSet[numSet].fd = connectSocket;
+		/* revents fiels is 0 by default */
 		activeSet[numSet].events = POLLIN;
-		activeSet[numSet].revents = 0; // 
 		numSet++;
 	}
 }
 
-void Server::handleExistingConnection(struct pollfd connection)
+void Server::handleExistingConnection(struct pollfd & connection)
 {
-	int status;
+	std::string response;
 
-	/* обнаружили событие, обнулим revents, чтобы можно было переиспользовать структуру */
 	if (connection.revents & POLLIN)
 	{
-				std::cout << "Receive\n";
-		status = this->readFromClient(connection.fd, buf, sizeof(buf));
-				std::cout << "Receive\n";
-		if (status == 0)
-		{
-			connection.revents = POLLOUT;
-		}
+		size_t bytes_read = recv(connection.fd, buf, sizeof(buf), 0);
+		/* set input parameter, for what events we are looking for */
+		connection.events = POLLOUT;
+		std::cout << "This is buf :\n" << buf << "\n\n";
 	}
 	else if (connection.revents & POLLOUT)
 	{
-				std::cout << "Send\n";
-		status = this->sendToClient(connection.fd, buf, sizeof(buf));
-				std::cout << "Send\n";
-		if (status == 0)
-		{
-			connection.revents = POLLIN;
-		}
+		response = "HTTP/1.1 200 OK\nContent-Length: 14\nContent-Type: text/html\r\n\r\n<h1>Hello</h1>";
+		send(connection.fd, response.c_str(), strlen(response.c_str()), 0);
+		std::cout << "This is response :\n" << response << "\n\n";
+		connection.events = POLLIN;
 	}
-	// connection.revents = 0;
+	/* 
+		reset revents field to reuse the structure 
+	*/
+	connection.revents = 0;
 }
 
 void Server::closeConnection(struct pollfd connection, int i)

@@ -20,9 +20,6 @@
 # include "../Parser/Location.hpp"
 # include "../Server/Server.hpp"
 
-# define BUF_LEN        1024
-# define PARSE_ERROR    -1
-
 class Core
 {
     private:
@@ -33,6 +30,9 @@ class Core
         Core(const Core & rhs);
         const Core & operator=(const Core & rhs);
         ~Core();
+        
+        void setWebServers(void);
+        void printInfo(void);
 };
 
 #endif
