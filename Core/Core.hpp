@@ -23,7 +23,11 @@
 class Core
 {
     private:
-        std::vector<Server>    servers;
+        std::vector<Server>     servers;
+        struct pollfd           activeSet[SOMAXCONN];
+        int                     numSet;
+        char                    buf[BUF_LEN];
+        std::vector<int>        vSocks;
     
     public:
         Core(char* config);
@@ -31,8 +35,17 @@ class Core
         const Core & operator=(const Core & rhs);
         ~Core();
         
-        void setWebServers(void);
+        void setUpWebServers(void);
+        void runWebServers(void);
         void printInfo(void);
+    
+    private:
+        int readFromClient(int conn, char* buffer, size_t size);
+        int sendToClient(int conn, const char *buffer, size_t size);
+        void acceptNewConnection(int listenSocket);
+        void handleExistingConnection(struct pollfd & connection);
+        void closeConnection(struct pollfd connection, int i);
+        void cleanAllSockets(void);
 };
 
 #endif

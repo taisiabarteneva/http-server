@@ -59,7 +59,6 @@ class Server
 
 		/* --------------------------------------- member functions */
 		void 	setupServer(void);
-		void 	run(void);
 
 	private:
 		Server();
@@ -68,14 +67,6 @@ class Server
 		int 	parseAddress(void);
 		void 	bindListenSock(void);
 		void 	createQueue(void);
-		void 	initPollFdStruct(void);
-		void 	handlePollIn(int fd);
-		int 	readFromClient(int conn, char* buffer, size_t size);
-		int 	sendToClient(int conn, const char *buffer, size_t size);
-		void 	closeConnection(struct pollfd connection, int i);
-		void 	cleanAllSockets(void);
-		void 	acceptNewConnection(void);
-		void 	handleExistingConnection(struct pollfd & connection);
 
 		std::vector<Location> 	_locations;
 		std::string             _address;
@@ -84,10 +75,6 @@ class Server
 		char					ipv4[16];
 		char					port[4];
 		struct sockaddr_in  	addr;
-		struct pollfd       	activeSet[SOMAXCONN];
-		nfds_t   		        numSet;
-		char                	buf[BUF_LEN];
-		Http					http;
 };
 
 

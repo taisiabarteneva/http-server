@@ -14,7 +14,8 @@ int main(int argc, char **argv)
 	Core 	core(argv[1]);
 
 /* 	core.printInfo();
- */	core.setWebServers();
+ */	core.setUpWebServers();
+	core.runWebServers();
 	
 	// myCore.createListenSock();
 	// myCore.fillServerStruct("0.0.0.0:8080");
