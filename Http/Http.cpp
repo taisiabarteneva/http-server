@@ -50,6 +50,8 @@ bool Http::getResponse(int fd) // принять конфиг
     {
         resp->resetData();
         connections[fd].first->resetData();
+        // connections[fd].first->~Request();
+        connections.erase(fd);
     }
     return done;
 }

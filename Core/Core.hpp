@@ -41,7 +41,7 @@ class Core
         int                     numSet;
         char                    buf[BUF_LEN];
         std::vector<int>        vSocks;
-        Http                    HTTP;
+        Http                    http;
     
     public:
         Core(char* config);

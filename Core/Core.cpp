@@ -137,7 +137,7 @@ void Core::acceptNewConnection(int listenSocket)
 void Core::handleExistingConnection(struct pollfd & connection, int i)
 {
 	std::string response;
-	Http http;
+	
 
 	
 	if (connection.revents & POLLIN)
@@ -157,8 +157,8 @@ void Core::handleExistingConnection(struct pollfd & connection, int i)
 
 		if (http.getResponse(connection.fd))
 		{
-			connection.events = 0;
-			// closeConnection(connection, i);
+			// connection.events = 0;
+			closeConnection(connection, i);
 		}
 		// response = "HTTP/1.1 200 OK\nContent-Length: 14\nContent-Type: text/html\r\n\r\n<h1>Hello</h1>";
 		// send(connection.fd, response.c_str(), strlen(response.c_str()), 0);
@@ -182,7 +182,11 @@ void Core::closeConnection(struct pollfd connection, int i)
 		if (activeSet[i].fd == -1)
 		{
 			for (int j = 0; j < numSet - 1; j++)
+			{
 				activeSet[i].fd = activeSet[j + 1].fd;
+				activeSet[i].events = activeSet[j + 1].events;
+				activeSet[i].revents = activeSet[j + 1].revents;
+			}
 			i--;
 		}
 	}

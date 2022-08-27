@@ -232,23 +232,23 @@ void    Response::responseGet(std::string root)
     setHeader("Accept-Ranges", "bytes");
 }
 
-// void    Response::responsePost(std::string root)
-// {
-//     std::string postContentType;
-//     //TODO: запихнуть в отдельный метод поиска в response; или нет
-//     postContentType = request->getHeaderValue("Content-Type");
-//     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-//     if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
-//     {
+void    Response::responsePost(std::string root)
+{
+    std::string postContentType;
+    //TODO: запихнуть в отдельный метод поиска в response; или нет
+    postContentType = request->getHeaderValue("Content-Type");
+    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
+    {
         
 
-//         std::cout << postContentType << std::endl << std::endl;
-//         std::cout << request->getBody() << std::endl;
-//     }
-//     else if (postContentType.compare("multipart/form-data"))
-//     {
-//         std::cout << postContentType << std::endl << std::endl;
-//     }
+        std::cout << postContentType << std::endl << std::endl;
+        std::cout << request->getBody() << std::endl;
+    }
+    else if (postContentType.compare("multipart/form-data"))
+    {
+        std::cout << postContentType << std::endl << std::endl;
+    }
 // }
 
 // void    Response::responseDelete(std::string root)
