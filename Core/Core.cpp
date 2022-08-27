@@ -77,7 +77,7 @@ void Core::runWebServers(void)
 		}
 		for (i = 0; i < numSet; i++)
 		{
-			std::cout << "numset : " << numSet << std::endl;
+			// std::cout << "numset : " << numSet << std::endl;
             it = std::find(vSocks.begin(), vSocks.end(), activeSet[i].fd);
 			/* for debugging purposes */
 			/* if (activeSet[i].revents != 0) 
@@ -94,14 +94,14 @@ void Core::runWebServers(void)
 			}
 			else if ((activeSet[i].revents & POLLIN || activeSet[i].revents & POLLOUT))
 			{
-				std::cout << activeSet[i].fd << "hello?\n";
+				std::cout << "FD being processed : " << activeSet[i].fd << "\n";
 				handleExistingConnection(activeSet[i]);
 			}
 			else
 			{
-				std::cerr << "i:" << activeSet[i].fd << ", revents:" << activeSet[i].revents << std::endl;
+				std::cerr << "FD : " << activeSet[i].fd << ", revents : " << activeSet[i].revents << std::endl;
 				std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
-				closeConnection(activeSet[i], i);
+				// closeConnection(activeSet[i], i);
 			}
 		}
 	}
@@ -138,6 +138,7 @@ void Core::handleExistingConnection(struct pollfd & connection)
 	std::string response;
 	Http http;
 
+	
 	if (connection.revents & POLLIN)
 	{
 		if (http.acceptRequest(connection.fd))
