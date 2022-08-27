@@ -213,12 +213,12 @@ void    Response::responseGet(std::string root)
         if (!access(fileName.c_str(), F_OK))
         {
             std::cerr << "Permission denied" << std::endl;
-            // responseError("403", response->getErrorPage("403"));
+            responseError("403", getErrorPage("403"));
         }
         else
         {
             std::cerr << "Bad file" << std::endl;
-            // responseError("404", response->getErrorPage("404"));
+            responseError("404", getErrorPage("404"));
         }
     }
     else
@@ -256,17 +256,17 @@ void    Response::responseGet(std::string root)
 
 // }
 
-// void    Response::responseError(std::string code, std::string path)
-// {
-//     response->setCode(code);
-//     response->setStatus(response->statusCodes[atoi(code.c_str())]);
-//     response->setHeader("Connection", "keep-alive"); //TODO: ???
-//     openFile(path);
-//     if (reader.fail())
-//     {
-//         openFile(response->getErrorPage(code));
-//     }
-// }
+void    Response::responseError(std::string code, std::string path)
+{
+    setCode(code);
+    setStatus(statusCodes[atoi(code.c_str())]);
+    setHeader("Connection", "keep-alive"); //TODO: ???
+    openFile(path);
+    if (reader.fail())
+    {
+        openFile(getErrorPage(code));
+    }
+}
 
 void Response::recieveDataFromFile()
 {
