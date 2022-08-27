@@ -20,20 +20,6 @@
 # include "../Parser/Location.hpp"
 # include "../Http/Http.hpp"
 
-# define BUF_LEN        1024
-# define INFINITE 		-1
-# define PARSE_ERROR    -1
-
-/*
-	struct pollfd 
-	{
-		int 	fd;				// the following descriptor being polled 
-		short 	events;			// input parameter, specifying the events the app is interested in for the fd
-		short 	revents;		// output parameter, filled by a kernel with the events that actually occured
-	}; 
-	nfds_t — an unsigned integer type (long) used for the number of file descriptors
-*/
-
 /*
 	struct sockaddr_in 
 	{

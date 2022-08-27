@@ -20,6 +20,19 @@
 # include "../Parser/Location.hpp"
 # include "../Server/Server.hpp"
 
+# define BUF_LEN        1024
+# define INFINITE 		-1
+
+/*
+	struct pollfd 
+	{
+		int 	fd;				// the following descriptor being polled 
+		short 	events;			// input parameter, specifying the events the app is interested in for the fd
+		short 	revents;		// output parameter, filled by a kernel with the events that actually occured
+	}; 
+	nfds_t — an unsigned integer type (long) used for the number of file descriptors
+*/
+
 class Core
 {
     private:
@@ -28,6 +41,7 @@ class Core
         int                     numSet;
         char                    buf[BUF_LEN];
         std::vector<int>        vSocks;
+        Http                    HTTP;
     
     public:
         Core(char* config);
@@ -40,8 +54,6 @@ class Core
         void printInfo(void);
     
     private:
-        int readFromClient(int conn, char* buffer, size_t size);
-        int sendToClient(int conn, const char *buffer, size_t size);
         void acceptNewConnection(int listenSocket);
         void handleExistingConnection(struct pollfd & connection);
         void closeConnection(struct pollfd connection, int i);

@@ -77,6 +77,7 @@ void Core::runWebServers(void)
 		}
 		for (i = 0; i < numSet; i++)
 		{
+			std::cout << "numset : " << numSet << std::endl;
             it = std::find(vSocks.begin(), vSocks.end(), activeSet[i].fd);
 			/* for debugging purposes */
 			/* if (activeSet[i].revents != 0) 
@@ -85,47 +86,34 @@ void Core::runWebServers(void)
                         (activeSet[i].revents & POLLIN)  ? "POLLIN "  : "",
                         (activeSet[i].revents & POLLOUT) ? "POLLOUT " : "");
 			} */
-			if (activeSet[i].revents != POLLIN && activeSet[i].revents != POLLOUT && \
-				activeSet[i].revents != 0)
-			{
-				std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
-				closeConnection(activeSet[i], i);
-			}
+			if (activeSet[i].revents == 0)
+				continue ;
             else if (it != vSocks.end()) // else if (activeSet[i].fd == listenSocket)
 			{
 				acceptNewConnection(*it);
 			}
+			else if ((activeSet[i].revents & POLLIN || activeSet[i].revents & POLLOUT))
+			{
+				std::cout << activeSet[i].fd << "hello?\n";
+				handleExistingConnection(activeSet[i]);
+			}
 			else
 			{
-				handleExistingConnection(activeSet[i]);
+				std::cerr << "i:" << activeSet[i].fd << ", revents:" << activeSet[i].revents << std::endl;
+				std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
+				closeConnection(activeSet[i], i);
 			}
 		}
 	}
+	std::cout << "here\n";
 	cleanAllSockets();
-}
-
-
-int Core::readFromClient(int conn, char* buffer, size_t size)
-{
-    bzero((void *)buf, sizeof(buf));
-    recv(conn, buffer, (int)size, 0);
-    return 0; // ToDo
-}
-
-int Core::sendToClient(int conn, const char *buffer, size_t size)
-{
-	std::string response;
-
-    response = "HTTP/1.1 200 OK\nContent-Length: 5\nContent-Type: text/html\r\n\r\nhello";
-    send(conn, response.c_str(), strlen(response.c_str()), 0);
-    return 0; // ToDo
 }
 
 void Core::acceptNewConnection(int listenSocket)
 {
-	int 	connectSocket;
+	int 	connectSocket = 1;
 
-	while (true)
+	while (connectSocket > 0)
 	{
 		connectSocket = accept(listenSocket, NULL, NULL);
 		if (connectSocket < 0)
@@ -139,7 +127,7 @@ void Core::acceptNewConnection(int listenSocket)
 			break ;
 		}
 		activeSet[numSet].fd = connectSocket;
-		/* revents fiels is 0 by default */
+		/* revents field is 0 by default */
 		activeSet[numSet].events = POLLIN;
 		numSet++;
 	}
@@ -148,24 +136,33 @@ void Core::acceptNewConnection(int listenSocket)
 void Core::handleExistingConnection(struct pollfd & connection)
 {
 	std::string response;
+	Http http;
 
 	if (connection.revents & POLLIN)
 	{
-		size_t bytes_read = recv(connection.fd, buf, sizeof(buf), 0);
-		/* set input parameter, for what events we are looking for */
-		connection.events = POLLOUT;
-		std::cout << "This is buf :\n" << buf << "\n\n";
+		if (http.acceptRequest(connection.fd))
+            connection.events = POLLOUT;
+
+		// size_t bytes_read = recv(connection.fd, buf, sizeof(buf), 0);
+		// /* set input parameter, for what events we are looking for */
+		// connection.events = POLLOUT;
+		// std::cout << "This is buf :\n" << buf << "\n\n";
 	}
 	else if (connection.revents & POLLOUT)
 	{
-		response = "HTTP/1.1 200 OK\nContent-Length: 14\nContent-Type: text/html\r\n\r\n<h1>Hello</h1>";
-		send(connection.fd, response.c_str(), strlen(response.c_str()), 0);
-		std::cout << "This is response :\n" << response << "\n\n";
-		connection.events = POLLIN;
+		if (http.getResponse(connection.fd))
+            connection.events = POLLIN;
+			
+		// response = "HTTP/1.1 200 OK\nContent-Length: 14\nContent-Type: text/html\r\n\r\n<h1>Hello</h1>";
+		// send(connection.fd, response.c_str(), strlen(response.c_str()), 0);
+		// // std::cout << "This is response :\n" << response << "\n\n";
+		// connection.events = POLLIN;
+
 	}
 	/* 
 		reset revents field to reuse the structure 
 	*/
+	// std::cout << "Fd:" << connection.fd << std::endl;
 	connection.revents = 0;
 }
 
@@ -180,9 +177,9 @@ void Core::closeConnection(struct pollfd connection, int i)
 			for (int j = 0; j < numSet - 1; j++)
 				activeSet[i].fd = activeSet[j + 1].fd;
 			i--;
-			numSet--;
 		}
 	}
+	numSet--;
 }
 
 void Core::cleanAllSockets(void)
@@ -192,6 +189,7 @@ void Core::cleanAllSockets(void)
 		if (activeSet[i].fd >= 0)
 			close(activeSet[i].fd);
 	}
+	numSet = 0;
 }
 
 void Core::printInfo(void)

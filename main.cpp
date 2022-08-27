@@ -1,9 +1,9 @@
 # define LOCALHOST "127.0.0.1"
 
-# include "Core/Core.hpp"
+// # include "Core/Core.hpp"
 # include "Http/Http.hpp"
 # include "Parser/ConfigFile.hpp"
-
+# include "Net/Net.hpp"
 int main(int argc, char **argv)
 {
 	if (argc != 2)
@@ -13,20 +13,15 @@ int main(int argc, char **argv)
 	}
 	Core 	core(argv[1]);
 
-/* 	core.printInfo();
- */	core.setUpWebServers();
+	// core.printInfo();
+	core.setUpWebServers();
 	core.runWebServers();
-	
-	// myCore.createListenSock();
-	// myCore.fillServerStruct("0.0.0.0:8080");
-	// myCore.bindListenSock();
-	// myCore.createQueue();
-	// myCore.initSocketSet();
-	// myCore.stateManager();
 
 	// char buffer[30000];
 	// int socket_fd, accept_fd;
 	// Net net;
+	// Http http;
+	// std::map<int, Http*> connection;
 
 	// socket_fd = net.listen_net("0.0.0.0:8088");
 	// if (socket_fd < 0)
@@ -38,31 +33,24 @@ int main(int argc, char **argv)
 	// {
 	// 	std::cout << "ATTENTION!!! WAITING FOR CONNECTION!!!" << std::endl;
 	// 	accept_fd = net.accept_net(socket_fd);
+	// 	std::cout << "ACCEPTED FD: " << accept_fd << std::endl;
 	// 	if (accept_fd < 0)
 	// 	{
 	// 		std::cerr << "Accepting failure" << std::endl;
 	// 		exit(1);
 	// 	}
-	// 	net.recv_net(accept_fd, buffer, 30000);
-	// 	Http http(buffer); //TODO: в разработке
-	// 	//TODO: здесь сега по причине деаллокации стринга. Скопировать в фиксированный char*. https://rnkovacs.com/gsoc2018/
-	// 	net.send_net(accept_fd, http.getResponseHeader().c_str(), strlen(http.getResponseHeader().c_str()));
-	// 	while (!http.isEndOfFile())
+	// 	bool test = false;
+	// 	while (!test) //ТУДУ: НИКАКИХ ВАЙЛ! СЮДА ЗАХОД ПОСЛЕ POLL
+	// 		test = http.acceptRequest(accept_fd);
+	// 	test = false;
+	// 	while (!test)
 	// 	{
-	// 		std::cout << "TEST" << std::endl;
-	// 		http.recieveDataFromFile();
-	// 		std::cout << http.getBytes() << std::endl;
-	// 		// std::cout << 
-	// 		net.send_net(accept_fd, http.fileBuffer, http.getBytes());
-	// 		std::cout << "TEST3" << std::endl;
+	// 		test = http.getResponse(accept_fd);
 	// 	}
-	// 	close(accept_fd);
 	// 	std::cout << "CONNECTION REFUSED!!!" << std::endl;
 	// }
 
-	//  close(socket_fd);
-
-	
+	// close(socket_fd);
 	/* REQUEST TEMPLATE */
 	// std::string buff = "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\nsec-ch-ua:  Not A;Brand;v=99, Chromium;v=100, Google Chrome;v=100\r\nsec-ch-ua-mobile: ?0sec-ch-ua-platform: macOS\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-User: ?1\r\nSec-Fetch-Dest: document\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\r\n";
 	/*		*/
