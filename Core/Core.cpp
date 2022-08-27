@@ -75,6 +75,7 @@ void Core::runWebServers(void)
 			std::cerr << "[Error] : poll() system call failed\n";
             exit(EXIT_FAILURE);
 		}
+		std::cout << "numset : " << numSet << std::endl;
 		for (i = 0; i < numSet; i++)
 		{
 			// std::cout << "numset : " << numSet << std::endl;
@@ -94,8 +95,8 @@ void Core::runWebServers(void)
 			}
 			else if ((activeSet[i].revents & POLLIN || activeSet[i].revents & POLLOUT))
 			{
-				std::cout << "FD being processed : " << activeSet[i].fd << "\n";
-				handleExistingConnection(activeSet[i]);
+				std::cout << "FD being processed : " << activeSet[i].fd << " i " << i << "\n";
+				handleExistingConnection(activeSet[i], i);
 			}
 			else
 			{
@@ -105,7 +106,7 @@ void Core::runWebServers(void)
 			}
 		}
 	}
-	std::cout << "here\n";
+
 	cleanAllSockets();
 }
 
@@ -133,7 +134,7 @@ void Core::acceptNewConnection(int listenSocket)
 	}
 }
 
-void Core::handleExistingConnection(struct pollfd & connection)
+void Core::handleExistingConnection(struct pollfd & connection, int i)
 {
 	std::string response;
 	Http http;
@@ -141,6 +142,7 @@ void Core::handleExistingConnection(struct pollfd & connection)
 	
 	if (connection.revents & POLLIN)
 	{
+		std::cout << "Here\n";
 		if (http.acceptRequest(connection.fd))
             connection.events = POLLOUT;
 
@@ -151,9 +153,13 @@ void Core::handleExistingConnection(struct pollfd & connection)
 	}
 	else if (connection.revents & POLLOUT)
 	{
+		std::cout << "Here\n";
+
 		if (http.getResponse(connection.fd))
-            connection.events = POLLIN;
-			
+		{
+			connection.events = 0;
+			// closeConnection(connection, i);
+		}
 		// response = "HTTP/1.1 200 OK\nContent-Length: 14\nContent-Type: text/html\r\n\r\n<h1>Hello</h1>";
 		// send(connection.fd, response.c_str(), strlen(response.c_str()), 0);
 		// // std::cout << "This is response :\n" << response << "\n\n";

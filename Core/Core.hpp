@@ -55,7 +55,7 @@ class Core
     
     private:
         void acceptNewConnection(int listenSocket);
-        void handleExistingConnection(struct pollfd & connection);
+        void handleExistingConnection(struct pollfd & connection, int i);
         void closeConnection(struct pollfd connection, int i);
         void cleanAllSockets(void);
 };
