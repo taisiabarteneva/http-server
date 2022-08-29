@@ -157,8 +157,8 @@ void Core::handleExistingConnection(struct pollfd & connection, int i, Server* s
 
 		if (http.getResponse(connection.fd, serv))
 		{
-			// connection.events = 0;
 			closeConnection(connection, i);
+			// connection.events = 0;
 		}
 	}
 	/* 
