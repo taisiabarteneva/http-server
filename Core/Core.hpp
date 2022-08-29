@@ -54,8 +54,8 @@ class Core
         void printInfo(void);
     
     private:
-        void acceptNewConnection(int listenSocket);
-        void handleExistingConnection(struct pollfd & connection, int i);
+        void acceptNewConnection(std::vector<Server>::iterator serv, std::map<int, Server *> & toHttp);
+        void handleExistingConnection(struct pollfd & connection, int i, Server* serv);
         void closeConnection(struct pollfd connection, int i);
         void cleanAllSockets(void);
 };

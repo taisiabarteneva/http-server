@@ -22,7 +22,7 @@ void Http::makeRequest(int fd, Request *request)
     //где то здесь идёт запись в файл в том случае, если нужный хедер присутствует и тело есть
 }
 
-bool Http::acceptRequest(int fd)
+bool Http::acceptRequest(int fd, Server * serv)
 {
     if (connections.find(fd) == connections.end())
         connections[fd] = std::make_pair(new Request, new Response);
@@ -30,8 +30,9 @@ bool Http::acceptRequest(int fd)
     return connections[fd].first->isRead();
 }
 
-bool Http::getResponse(int fd) // принять конфиг
+bool Http::getResponse(int fd, Server * serv) // принять конфиг
 {
+    
     bool done;
     Response* resp = connections[fd].second;
     if (resp->isFirstResponse())

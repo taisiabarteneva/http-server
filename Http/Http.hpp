@@ -1,5 +1,6 @@
 #ifndef HTTP_HPP
 # define HTTP_HPP
+
 # include "Defines.hpp"
 # define HEADERS_SIZE 16384
 # define REQUEST_SIZE 16384
@@ -11,6 +12,8 @@
 # include <unistd.h>
 # include "Response.hpp"
 # include "Request.hpp"
+// # include "../Server/Server.hpp"
+class Server;
 
 class Http
 {
@@ -25,8 +28,8 @@ class Http
         Http();
         ~Http();
 
-        bool acceptRequest(int fd);
-        bool getResponse(int fd);
+        bool acceptRequest(int fd, Server * serv);
+        bool getResponse(int fd, Server * serv);
 };
 
 

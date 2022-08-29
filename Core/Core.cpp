@@ -61,6 +61,7 @@ void Core::runWebServers(void)
 {
     int i, status;
     std::vector<int>::iterator it;
+	std::map<int, Server *> toHttp;
 
 	while (true)
 	{		
@@ -91,18 +92,22 @@ void Core::runWebServers(void)
 				continue ;
             else if (it != vSocks.end()) // else if (activeSet[i].fd == listenSocket)
 			{
-				acceptNewConnection(*it);
+				for (std::vector<Server>::iterator serversIt = servers.begin(); serversIt != servers.end(); serversIt++)
+				{
+					if (serversIt->getListenSocket() == *it)
+						acceptNewConnection(serversIt, toHttp);
+				}
 			}
 			else if ((activeSet[i].revents & POLLIN || activeSet[i].revents & POLLOUT))
 			{
 				std::cout << "FD being processed : " << activeSet[i].fd << " i " << i << "\n";
-				handleExistingConnection(activeSet[i], i);
+				handleExistingConnection(activeSet[i], i, toHttp[activeSet[i].fd]);
 			}
 			else
 			{
 				std::cerr << "FD : " << activeSet[i].fd << ", revents : " << activeSet[i].revents << std::endl;
 				std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
-				// closeConnection(activeSet[i], i);
+				closeConnection(activeSet[i], i);
 			}
 		}
 	}
@@ -110,13 +115,14 @@ void Core::runWebServers(void)
 	cleanAllSockets();
 }
 
-void Core::acceptNewConnection(int listenSocket)
+void Core::acceptNewConnection(std::vector<Server>::iterator serv, \
+	 std::map<int, Server *> & toHttp)
 {
 	int 	connectSocket = 1;
 
 	while (connectSocket > 0)
 	{
-		connectSocket = accept(listenSocket, NULL, NULL);
+		connectSocket = accept(serv->getListenSocket(), NULL, NULL);
 		if (connectSocket < 0)
 		{
 			if (errno != EWOULDBLOCK)
@@ -127,6 +133,7 @@ void Core::acceptNewConnection(int listenSocket)
 			/* connection already exist */
 			break ;
 		}
+		toHttp[connectSocket] = &(*serv);
 		activeSet[numSet].fd = connectSocket;
 		/* revents field is 0 by default */
 		activeSet[numSet].events = POLLIN;
@@ -134,42 +141,29 @@ void Core::acceptNewConnection(int listenSocket)
 	}
 }
 
-void Core::handleExistingConnection(struct pollfd & connection, int i)
+void Core::handleExistingConnection(struct pollfd & connection, int i, Server* serv)
 {
 	std::string response;
-	
 
-	
 	if (connection.revents & POLLIN)
 	{
 		std::cout << "Here\n";
-		if (http.acceptRequest(connection.fd))
+		if (http.acceptRequest(connection.fd, serv))
             connection.events = POLLOUT;
-
-		// size_t bytes_read = recv(connection.fd, buf, sizeof(buf), 0);
-		// /* set input parameter, for what events we are looking for */
-		// connection.events = POLLOUT;
-		// std::cout << "This is buf :\n" << buf << "\n\n";
 	}
 	else if (connection.revents & POLLOUT)
 	{
 		std::cout << "Here\n";
 
-		if (http.getResponse(connection.fd))
+		if (http.getResponse(connection.fd, serv))
 		{
 			// connection.events = 0;
 			closeConnection(connection, i);
 		}
-		// response = "HTTP/1.1 200 OK\nContent-Length: 14\nContent-Type: text/html\r\n\r\n<h1>Hello</h1>";
-		// send(connection.fd, response.c_str(), strlen(response.c_str()), 0);
-		// // std::cout << "This is response :\n" << response << "\n\n";
-		// connection.events = POLLIN;
-
 	}
 	/* 
 		reset revents field to reuse the structure 
 	*/
-	// std::cout << "Fd:" << connection.fd << std::endl;
 	connection.revents = 0;
 }
 
