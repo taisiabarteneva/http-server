@@ -19,6 +19,7 @@
 # include <netdb.h>
 # include "../Parser/Location.hpp"
 # include "../Server/Server.hpp"
+# include "../Http/Http.hpp"
 
 # define BUF_LEN        1024
 # define INFINITE 		-1

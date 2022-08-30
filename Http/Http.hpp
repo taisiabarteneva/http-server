@@ -12,8 +12,8 @@
 # include <unistd.h>
 # include "Response.hpp"
 # include "Request.hpp"
-// # include "../Server/Server.hpp"
-class Server;
+# include "../Server/Server.hpp"
+// class Server;
 
 class Http
 {

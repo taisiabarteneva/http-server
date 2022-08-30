@@ -193,20 +193,62 @@ Response::~Response()
         reader.close();
 }
 
-std::string Response::prepareResponse(std::string root, Request* request)
+std::string Response::prepareResponse(std::vector<Location> locations, Request* request)
 {
     this->request = request;
     if (request->getMethod() == "GET")
-        responseGet(root);
+        responseGet(locations);
     return (getHeaders());
 }
 
-void    Response::responseGet(std::string root)
+Location    *Response::getLocation(std::vector<Location> locations)
 {
-    std::string fileName = root + request->getURI(); //TODO: filename from GET
-    if (fileName == (root + "/"))
-        fileName = root + "/index.html";
-    // std::cout << fileName << std::endl; //TODO: debug
+    int compability;
+    int maxCompability;
+    Location *returnLocation = NULL;
+    std::string recievedPath = request->getURI();
+
+    for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
+    {
+        std::string tmpPath = it->getPath();
+        compability = 1;
+        while (tmpPath.find('/') != std::string::npos)
+        {
+            if (recievedPath.compare(0, tmpPath.length(), tmpPath))
+                compability++;
+            tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
+        }
+        if (maxCompability < compability)
+        {
+            maxCompability = compability;
+            returnLocation = &(*it);
+        }
+    }
+    return returnLocation;
+}
+
+std::string Response::getFileName(Location *location)
+{
+    std::string filePath;
+    std::string fileName;
+
+    if (location == NULL)
+        return "resources/index.html";
+    filePath = location->getRoot();
+    if (filePath.empty())
+        filePath = "resources/";
+    fileName = location->getIndex();
+    if (fileName.empty())
+        fileName = "index.html";
+    return (filePath + fileName);
+
+}
+
+void    Response::responseGet(std::vector<Location> locations)
+{
+    Location *location = getLocation(locations);
+    std::string fileName = getFileName(location);
+    std::cout << fileName << std::endl; //TODO: debug
     openFile(fileName);
     if (reader.fail())
     {
@@ -217,7 +259,7 @@ void    Response::responseGet(std::string root)
         }
         else
         {
-            std::cerr << "Bad file" << std::endl;
+            std::cerr << "File not found" << std::endl;
             responseError("404", getErrorPage("404"));
         }
     }
@@ -228,6 +270,7 @@ void    Response::responseGet(std::string root)
     }
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
     setHeader("Content-Length", getFileSize());
+    // setHeader("Transfer-Encoding", "chunked");//TODO
     setHeader("Connection", "close"); //TODO: ???
     setHeader("Accept-Ranges", "bytes");
 }

@@ -10,6 +10,8 @@
 # include <iostream>
 # include <unistd.h>
 # include <fstream>
+# include <vector>
+# include "../Server/Server.hpp"
 # include "Request.hpp"
 
 enum StartLine {
@@ -36,7 +38,7 @@ private:
     std::ostringstream stream;
 
 
-    void        responseGet(std::string root);
+    void        responseGet(std::vector<Location> locations);
     void        openFile(std::string file);
     void        recieveDataFromFile();
     std::string getHeaders(); //Debug and other
@@ -46,6 +48,9 @@ private:
     void initStatusCodes();
     void initMIMETypes();
     void initResponsePages();
+
+    Location    *getLocation(std::vector<Location> locations);
+    std::string getFileName(Location *location);
 
     void setVersion(std::string& version);
     void setCode(std::string code);
@@ -62,7 +67,7 @@ public:
     std::map<int, std::string> statusCodes;
     Response();
     ~Response();
-    std::string prepareResponse(std::string root, Request* request);
+    std::string prepareResponse(std::vector<Location>, Request* request);
     void        resetData();
 
     bool        isFirstResponse();

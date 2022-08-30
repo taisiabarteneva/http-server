@@ -4,7 +4,7 @@ std::map<int , std::pair<Request*, Response*> > Http::connections;
 
 int Http::send_msg(int conn, const char *buffer, size_t size)
 {
-    return send(conn, buffer, (int)size, 0);
+    return send(conn, buffer, (int)size, MSG_NOSIGNAL);
 }
 int Http::recv_msg(int conn, char* buffer, size_t size)
 {
@@ -30,14 +30,13 @@ bool Http::acceptRequest(int fd, Server * serv)
     return connections[fd].first->isRead();
 }
 
-bool Http::getResponse(int fd, Server * serv) // принять конфиг
+bool Http::getResponse(int fd, Server * serv)
 {
-    
     bool done;
     Response* resp = connections[fd].second;
     if (resp->isFirstResponse())
     {
-        std::string head = resp->prepareResponse("resources", connections[fd].first);
+        std::string head = resp->prepareResponse(serv->getLocations(), connections[fd].first);
         send_msg(fd, head.c_str(), head.length());
     }
     else
@@ -51,7 +50,6 @@ bool Http::getResponse(int fd, Server * serv) // принять конфиг
     {
         resp->resetData();
         connections[fd].first->resetData();
-        // connections[fd].first->~Request();
         connections.erase(fd);
     }
     return done;
