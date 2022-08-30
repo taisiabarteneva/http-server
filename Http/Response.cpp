@@ -204,14 +204,14 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
 Location    *Response::getLocation(std::vector<Location> locations)
 {
     int compability;
-    int maxCompability;
+    int maxCompability = -1;
     Location *returnLocation = NULL;
     std::string recievedPath = request->getURI();
 
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
     {
         std::string tmpPath = it->getPath();
-        compability = 1;
+        compability = 0;
         while (tmpPath.find('/') != std::string::npos)
         {
             if (recievedPath.compare(0, tmpPath.length(), tmpPath))
@@ -244,10 +244,29 @@ std::string Response::getFileName(Location *location)
 
 }
 
+void    Response::checkOtherPreferences(Location *location)
+{
+    if (location != NULL)
+    location->getAllowMethods();
+    if (location->getAutoindex().compare("on"))
+        autoIndexOn = true;
+    else
+        autoIndexOn = false;
+    std::cout << "AUTOINDEX: " << location->getAutoindex() << std::endl;
+    // for (std::string i : location->getErrors())
+    // {
+    //     i = location->getRoot() + i;
+    //     std::cout << i << std::endl;
+    // }
+    // errors.insert(location->getErrors().begin(), location->getErrors().end());
+}
+
 void    Response::responseGet(std::vector<Location> locations)
 {
     Location *location = getLocation(locations);
     std::string fileName = getFileName(location);
+    std::cout << "File Name: " << fileName << std::endl;
+    checkOtherPreferences(location);
     std::cout << fileName << std::endl; //TODO: debug
     openFile(fileName);
     if (reader.fail())
