@@ -73,10 +73,10 @@ void Core::runWebServers(void)
 		status = poll(activeSet, numSet, INFINITE);
 		if (status < 0)
 		{
-			std::cerr << "[Error] : poll() system call failed\n";
+			// std::cerr << "[Error] : poll() system call failed\n";
             exit(EXIT_FAILURE);
 		}
-		std::cout << "numset : " << numSet << std::endl;
+		// std::cout << "numset : " << numSet << std::endl;
 		for (i = 0; i < numSet; i++)
 		{
 			// std::cout << "numset : " << numSet << std::endl;
@@ -100,13 +100,13 @@ void Core::runWebServers(void)
 			}
 			else if ((activeSet[i].revents & POLLIN || activeSet[i].revents & POLLOUT))
 			{
-				std::cout << "FD being processed : " << activeSet[i].fd << " i " << i << "\n";
+				// std::cout << "FD being processed : " << activeSet[i].fd << " i " << i << "\n";
 				handleExistingConnection(activeSet[i], i, toHttp[activeSet[i].fd]);
 			}
 			else
 			{
-				std::cerr << "FD : " << activeSet[i].fd << ", revents : " << activeSet[i].revents << std::endl;
-				std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
+				// std::cerr << "FD : " << activeSet[i].fd << ", revents : " << activeSet[i].revents << std::endl;
+				// std::cerr << "[Error] : internal error has occurred. Disconnecting...\n";
 				closeConnection(activeSet[i], i);
 			}
 		}
@@ -147,13 +147,13 @@ void Core::handleExistingConnection(struct pollfd & connection, int i, Server* s
 
 	if (connection.revents & POLLIN)
 	{
-		std::cout << "Here\n";
+		// std::cout << "Here\n";
 		if (http.acceptRequest(connection.fd, serv))
             connection.events = POLLOUT;
 	}
 	else if (connection.revents & POLLOUT)
 	{
-		std::cout << "Here\n";
+		// std::cout << "Here\n";
 
 		if (http.getResponse(connection.fd, serv))
 		{

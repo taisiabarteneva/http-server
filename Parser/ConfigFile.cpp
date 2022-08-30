@@ -23,6 +23,7 @@ void ConfigFile::setDefaultConfigValues(map<string, string>& config) {
 	config["index"] = "";
 	config["cgi_path"] = "";
     config["cgi_extension"] = "";
+	config["path"] = "/";
 //	config["authentication"] = "";
 }
 
@@ -335,6 +336,7 @@ void ConfigFile::parsingConfigFile(const string &file) {
 	vector<string> str_words;
 	memset(&utils_flags, 0, sizeof(ConfigFlags));
 
+
     ConfigFlags loc_utils_flags;
     memset(&loc_utils_flags, 0, sizeof(ConfigFlags));
     loc_utils_flags.check_server = true;
@@ -413,6 +415,7 @@ void ConfigFile::parsingConfigFile(const string &file) {
 				break;
 			case LOCATION:
 				checkIsLocation(utils_flags, str_words);
+				tmp_config["path"] = str_words[1];
 				break;
 			case ERROR:
 				checkIsErrorPage(utils_flags, str_words, this->config_file);
