@@ -204,7 +204,8 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
 Location    *Response::getLocation(std::vector<Location> locations)
 {
     int compability;
-    int maxCompability = -1;
+    int maxCompability = 0;
+    int tmpSlashPos = 0;
     Location *returnLocation = NULL;
     std::string recievedPath = request->getURI();
 
@@ -212,11 +213,12 @@ Location    *Response::getLocation(std::vector<Location> locations)
     {
         std::string tmpPath = it->getPath();
         compability = 0;
-        while (tmpPath.find('/') != std::string::npos)
+        while ((tmpSlashPos = tmpPath.find('/', tmpSlashPos)) != std::string::npos)
         {
-            if (recievedPath.compare(0, tmpPath.length(), tmpPath))
+            tmpSlashPos++;
+            if (!recievedPath.compare(0, tmpSlashPos, tmpPath))
                 compability++;
-            tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
+            // tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
         }
         if (maxCompability < compability)
         {
