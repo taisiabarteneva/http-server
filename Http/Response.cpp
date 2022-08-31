@@ -203,30 +203,73 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
 
 Location    *Response::getLocation(std::vector<Location> locations)
 {
+    int pos = 0;
+    std::string currentLocationPath;
+    std::string path = request->getURI();
+    Location    *ret;
     int compability;
     int maxCompability = 0;
-    int tmpSlashPos = 0;
-    Location *returnLocation = NULL;
-    std::string recievedPath = request->getURI();
 
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
     {
-        std::string tmpPath = it->getPath();
+        currentLocationPath = it->getPath();
         compability = 0;
-        while ((tmpSlashPos = tmpPath.find('/', tmpSlashPos)) != std::string::npos)
+        // pos = currentLocationPath.find('/', pos);
+        // pos++;
+        pos = 0;
+        while ((pos = currentLocationPath.find('/', pos)) != std::string::npos)
         {
-            tmpSlashPos++;
-            if (!recievedPath.compare(0, tmpSlashPos, tmpPath))
+            pos++;
+            if (path.compare(0, 2, currentLocationPath))
+            {
+                std::cout << path.compare(0, pos, currentLocationPath) << std::endl;
+                std::cout << "current path: " << currentLocationPath <<
+                "\nPath from request: " << path << std::endl;
                 compability++;
-            // tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
+            }
+            else
+            {
+                std::cout << path.substr(0, pos) << std::endl;
+                std::cout << currentLocationPath.substr(0, pos) << std::endl;
+                std::cout << "current path: " << currentLocationPath << " not found" << std::endl;
+                compability = 0;
+                break ;
+            }
         }
         if (maxCompability < compability)
         {
             maxCompability = compability;
-            returnLocation = &(*it);
+            ret = &(*it);
         }
     }
-    return returnLocation;
+    std::cout << "final path: " << ret->getPath() << std::endl;
+
+
+    // int compability;
+    // int maxCompability = 0;
+    // int tmpSlashPos = 0;
+    // Location *returnLocation = NULL;
+    // std::string recievedPath = request->getURI();
+
+    // for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
+    // {
+    //     std::string tmpPath = it->getPath();
+    //     compability = 0;
+    //     while ((tmpSlashPos = tmpPath.find('/', tmpSlashPos)) != std::string::npos)
+    //     {
+    //         tmpSlashPos++;
+    //         if (!recievedPath.compare(0, tmpSlashPos, tmpPath))
+    //             compability++;
+    //         // tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
+    //     }
+    //     if (maxCompability < compability)
+    //     {
+    //         maxCompability = compability;
+    //         returnLocation = &(*it);
+    //     }
+    // }
+    // request->setLocation(returnLocation); //TODO: не забыть для POST и DELETE
+    // return returnLocation;
 }
 
 std::string Response::getFileName(Location *location)
@@ -266,11 +309,10 @@ void    Response::checkOtherPreferences(Location *location)
 void    Response::responseGet(std::vector<Location> locations)
 {
     Location *location = getLocation(locations);
-    request->setLocation(location);
     std::string fileName = getFileName(location);
-    std::cout << "File Name: " << fileName << std::endl;
-    checkOtherPreferences(location);
-    std::cout << fileName << std::endl; //TODO: debug
+    // std::cout << "File Name: " << fileName << std::endl;
+    // checkOtherPreferences(location);
+    // std::cout << fileName << std::endl; //TODO: debug
     openFile(fileName);
     if (reader.fail())
     {
