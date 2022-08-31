@@ -116,20 +116,19 @@ void    CGI::prepareArgs(void)
     // args[2] = NULL;
 }
 
-void CGI::start()
+void CGI::start(Location * location)
 {   
     int             pid;
     int             status;
+    std::string     path;
     std::string     scriptFile;
-    std::string     pathToFile;
 
-    // scriptFile = 
+    path = location->getCgiPath();
+    scriptFile = path.substr(path.find_last_of('/' + 1)); 
     args.push_back(scriptFile.c_str());
-    pathToFile = location.getCgiPath();
     /* X_OK used to check for execute permissions on a file */
-    if (access(pathToFile, X_OK) == 0)
-        args.push_back(pathToFile.c_str());
-    
+    if (access(path, X_OK) == 0)
+        args.push_back(path.c_str());
 
     /* execve(scriptfile, args, env) */
 }

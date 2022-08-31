@@ -2,9 +2,11 @@
 # define    CGI_HPP
 
 # include   <dir.h>
+# include   <string>
 # include   <vector>
  
-#include "../Http/Request.hpp"
+# include "../Http/Request.hpp"
+# include "../Parser/Location.hpp"
 
 class CGI
 {
@@ -19,7 +21,7 @@ class CGI
         CGI(const CGI & rhs);
         const CGI &operator=(const CGI & rhs);
         ~CGI();
-        void            start();
+        void            start(Location * location);
 
     private:
         // void            clearArgsArray(void);
