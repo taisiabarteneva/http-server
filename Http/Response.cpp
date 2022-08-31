@@ -203,89 +203,78 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
 
 Location    *Response::getLocation(std::vector<Location> locations)
 {
-    int pos = 0;
+    int pos;
+    int start;
     std::string currentLocationPath;
     std::string path = request->getURI();
-    Location    *ret;
+    Location* ret;
+    std::string comp1;
+    std::string comp2;
     int compability;
     int maxCompability = 0;
 
+    if (path.back() != '/')
+        path += '/';
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
     {
         currentLocationPath = it->getPath();
-        compability = 0;
-        // pos = currentLocationPath.find('/', pos);
-        // pos++;
+        if (currentLocationPath.back() != '/')
+            currentLocationPath += '/';
+        start = currentLocationPath.find('/');
+        start++;
         pos = 0;
-        while ((pos = currentLocationPath.find('/', pos)) != std::string::npos)
+        compability = 0;
+        while (pos != std::string::npos)
         {
-            pos++;
-            if (path.compare(0, 2, currentLocationPath))
+            pos = currentLocationPath.find('/', start);
+            if (pos == std::string::npos)
             {
-                std::cout << path.compare(0, pos, currentLocationPath) << std::endl;
-                std::cout << "current path: " << currentLocationPath <<
-                "\nPath from request: " << path << std::endl;
-                compability++;
+                if (maxCompability == 0 && !currentLocationPath.compare("/"))
+                    ret = &(*it);
+                break;
             }
+            comp1 = currentLocationPath.substr(start, pos - start);
+            comp2 = path.substr(start, pos - start);
+            if (comp1.compare(comp2) == 0)
+                compability++;
             else
             {
-                std::cout << path.substr(0, pos) << std::endl;
-                std::cout << currentLocationPath.substr(0, pos) << std::endl;
-                std::cout << "current path: " << currentLocationPath << " not found" << std::endl;
                 compability = 0;
-                break ;
+                break;
             }
+            start = pos + 1;
         }
         if (maxCompability < compability)
         {
-            maxCompability = compability;
+            maxCompability  = compability;
             ret = &(*it);
         }
     }
-    std::cout << "final path: " << ret->getPath() << std::endl;
-
-
-    // int compability;
-    // int maxCompability = 0;
-    // int tmpSlashPos = 0;
-    // Location *returnLocation = NULL;
-    // std::string recievedPath = request->getURI();
-
-    // for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
-    // {
-    //     std::string tmpPath = it->getPath();
-    //     compability = 0;
-    //     while ((tmpSlashPos = tmpPath.find('/', tmpSlashPos)) != std::string::npos)
-    //     {
-    //         tmpSlashPos++;
-    //         if (!recievedPath.compare(0, tmpSlashPos, tmpPath))
-    //             compability++;
-    //         // tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
-    //     }
-    //     if (maxCompability < compability)
-    //     {
-    //         maxCompability = compability;
-    //         returnLocation = &(*it);
-    //     }
-    // }
-    // request->setLocation(returnLocation); //TODO: не забыть для POST и DELETE
-    // return returnLocation;
+    return ret;
 }
 
 std::string Response::getFileName(Location *location)
 {
     std::string filePath;
-    std::string fileName;
+    std::string fileURI;
 
+    fileURI = request->getURI();
     if (location == NULL)
         return "resources/index.html";
     filePath = location->getRoot();
     if (filePath.empty())
         filePath = "resources/";
-    fileName = location->getIndex();
-    if (fileName.empty())
-        fileName = "index.html";
-    return (filePath + fileName);
+    else if (filePath.back() != '/')
+        filePath += '/';
+        int i = fileURI.find_last_not_of(location->getPath());
+    fileURI.erase(0, i - 1);
+    if (fileURI.empty())
+    {
+        fileURI = location->getIndex();
+        if (fileURI.empty())
+            fileURI = "index.html";
+    }
+    return (filePath + fileURI);
 
 }
 
@@ -303,19 +292,34 @@ void    Response::checkOtherPreferences(Location *location)
     //     i = location->getRoot() + i;
     //     std::cout << i << std::endl;
     // }
-    // errors.insert(location->getErrors().begin(), location->getErrors().end());
+    // location->printLocationInfo();
+    map<string, string> i = location->getErrors();
+    // std::cout << "SIZE: " << i.size() << std::endl;
+        std::cout << "ERRORS GOT" << std::endl;
+    if (i.size() != 0)
+    {
+    std::map<std::string, std::string>::iterator it = location->getErrors().begin();
+        std::cout << "ERRORS GOT" << std::endl;
+    std::map<std::string, std::string>::iterator it1 = location->getErrors().end();
+        std::cout << "ERRORS GOT" << std::endl;
+        errors.insert(location->getErrors().begin(), location->getErrors().end());
+    }
+    else
+        std::cout << "Kek" << std::endl;
 }
 
 void    Response::responseGet(std::vector<Location> locations)
 {
     Location *location = getLocation(locations);
     std::string fileName = getFileName(location);
-    // std::cout << "File Name: " << fileName << std::endl;
-    // checkOtherPreferences(location);
+    std::cout << "File Name: " << fileName << std::endl;
+    checkOtherPreferences(location);
     // std::cout << fileName << std::endl; //TODO: debug
     openFile(fileName);
     if (reader.fail())
     {
+        // if (autoIndexOn)
+        //     checkFolder(); //TODO:
         if (!access(fileName.c_str(), F_OK))
         {
             std::cerr << "Permission denied" << std::endl;
