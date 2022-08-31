@@ -266,6 +266,7 @@ void    Response::checkOtherPreferences(Location *location)
 void    Response::responseGet(std::vector<Location> locations)
 {
     Location *location = getLocation(locations);
+    request->setLocation(location);
     std::string fileName = getFileName(location);
     std::cout << "File Name: " << fileName << std::endl;
     checkOtherPreferences(location);

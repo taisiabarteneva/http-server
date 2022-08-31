@@ -8,6 +8,7 @@
 # include <cstring>
 # include <string>
 # include <sys/socket.h>
+# include "../Parser/Location.hpp"
 
 
 class Request
@@ -33,6 +34,7 @@ private:
     bool headerRead;
     bool bodyRead;
     bool bodyPresent;
+    Location *location;
 
     void processStartLine();
     void processHeader();
@@ -49,6 +51,8 @@ public:
     bool isRead();
     bool isBodyPresent();
     void resetData();
+    Location *getLocation();
+    void    setLocation(Location *location);
 
     Request();
     ~Request();
