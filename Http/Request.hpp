@@ -1,5 +1,6 @@
-#ifndef REQUEST_HPP
-# define REQUEST_HPP
+#ifndef     REQUEST_HPP
+# define    REQUEST_HPP
+
 # define ERROR_PAGE_PATH "resources/errors/"
 # include "Defines.hpp"
 
@@ -19,7 +20,7 @@ private:
         DELETE,
         FAIL
     };
-    Method method;
+    Method      method;
     std::string target;
     std::string version;
     std::map<std::string, std::string> headers;

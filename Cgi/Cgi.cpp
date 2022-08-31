@@ -1,69 +1,135 @@
-#include "Cgi.hpp"
+#include "CGI.hpp"
 
-// вот здесь может все упасть если я не умею копировать нормально
-
-using namespace std;
-
-Cgi::Cgi(Request& req): request(req) {
+CGI::CGI(Request & req): request(req)
+{
     char dir[MAXDIR];
+
     getcwd(dir, MAX_DIR);
     abs_path = string(dir);
-    prepareCgiEnv();
-    prepareCgiArgs();
+
+    prepareCGIEnv();    
+    prepareCGIArgs();
 }
 
-Cgi::Cgi(const Cgi &cgi_copy) {
-	*this = cgi_copy;
+CGI::CGI(const CGI & rhs) 
+{
+	*this = rhs;
 }
 
-Cgi::~Cgi() {
-    if (env)
+const CGI & CGI::operator=(const CGI & rhs)
+{
+    /* check memory leaks */
+    if (this != &rhs)
     {
-        for (int i = 0; i < env.size(); ++i) {
-            delete[] env[i];
-        }
-        delete[] env;
+        request = rhs.request;
+        abs_path = rhs.abs_path;
+
+        args = rhs.args;
+        envs = rhs.envs;
+        // clearArgsArray();
+        // this->args = new char*[3];
+        // for (int i = 0; i < 3; i++)
+        // {
+        //     args[i] = new char*[rhs.args[i].size() + 1];
+        //     strcpy(this->args[i], rhs.args[i]);
+        // }
+        // args[i] = NULL;
+
+        // clearEnvArray();
+        // this->env = new char*[rhs.env.size() + 1];
+        // for (int i = 0; i < rhs.env.size(); i++)
+        // {
+        //     env[i] = new char[rhs.env[i].size() + 1];
+        //     strcpy(this->env[i], rhs.env[i]); 
+        // }
+        // env[i] = NULL;
     }
-    if (args)
-    {
-        for (int i = 0; i < args.size(); ++i) {
-            delete[] args[i];
-        }
-        delete[] args;
-    }
+}
+
+CGI::~CGI() 
+{
+    // if (env)
+    //     clearEnvArray();
+    // if (args)
+    //     clearArgsArray();
 };
 
-void    Cgi::prepareCgiEnv() {
-    map<string, string> headers = request.getHeaders();
-    vector<string> envs;
+/* --------------------------------------------------------- private */
+// void CGI::clearArgsArray(void)
+// {
+//     for (int i = 0; i < args.size(); ++i) 
+//     {
+//         delete[] args[i];
+//     }
+//     delete[] args;
+// }
 
-    envs.push_back("PATH_INFO" + request.getURI()); // то что после скрипта передается
-    envs.push_back("PATH_TRANSLATED" + abs_path); // полный путь
-    envs.push_back("QUERY_STRING" + request.getQueryString());
-    // мб еще какие-то переменные нужны
+// void CGI::clearEnvArray(void)
+// {
+//     for (int i = 0; i < env.size(); ++i) 
+//     {
+//         delete[] env[i];
+//     }
+//     delete[] env;
+// }
 
-    int i = 0;
-    env = new char*[envs.size() + 1];
-    env[envs.size() + 1] = NULL;
-    vector<string>::iterator it = env.begin();
-    while (it != env.end()) {
-        env[i] = new char[it->size() + 1];
-        env[i] = strcpy(env[i], it->c_str());
-        it++;
-        i++;
-    }
-    env[i] = NULL;
+void    CGI::prepareEnv(void) 
+{
+    // std::vector<std::string>             envs;
+    // int i;
+
+    /* 
+        CGI environment variables
+        CGI scripts are given predefined environment variables that provide information about the web server as well as the client
+    */
+
+    /* relative path for the CGI script */
+    envs.push_back("PATH_INFO=" + request.getURI());
+    /* absolute path for the CGI script */
+    envs.push_back("PATH_TRANSLATED=" + abs_path);
+    /* URL-encoded information that is sent with GET method request */
+    envs.push_back("QUERY_STRING=" + request.getQueryString());
+    /* method used to make the request */
+    envs.push_back("REQUEST_METHOD=" + request.getMethod());
+    /* data type of the content, used when the client is sending attached content to the server */
+    envs.push_back("CONTENT_TYPE=" + request.getHeaderValue("Content-Type"));
+    /* length of the query information that is available only for POST requests */
+    envs.push_back("CONTENT_LENGTH=" + request.getHeaderValue("Content-Length"));
+
+    // this->env = new char*[envs.size() + 1];
+    // std::vector<std::string>::iterator it = env.begin(); i = 0;
+    // for (; it != env.end(); it++; i++)
+    // {
+    //     this->env[i] = new char[it->size() + 1];
+    //     strcpy(this->env[i], it->c_str()); 
+    // }
+    // env[i] = NULL;
 }
 
-void    Cgi::prepareCgiArgs() {
-    args = new char*[3];
-    args[0] = new char[request.getLocation.getCgiPath().size() + 1];
-    args[0] = strcpy(args[0], request.getLocation.getCgiPath().c_str());
-    args[1] = new char[abs_path.size() + 1];
-    args[1] = strcpy(args[1], abs_path.c_str());
-    args[2] = NULL;
+void    CGI::prepareArgs(void)
+{
+    // args = new char*[3];
+    // args[0] = new char[request.getLocation.getCGIPath().size() + 1];
+    // args[0] = strcpy(args[0], request.getLocation.getCGIPath().c_str());
+    // args[1] = new char[abs_path.size() + 1];
+    // args[1] = strcpy(args[1], abs_path.c_str());
+    // args[2] = NULL;
 }
 
-bool    Cgi::checkScriptExists() {
+void CGI::start()
+{   
+    int             pid;
+    int             status;
+    std::string     scriptFile;
+    std::string     pathToFile;
 
+    // scriptFile = 
+    args.push_back(scriptFile.c_str());
+    pathToFile = location.getCgiPath();
+    /* X_OK used to check for execute permissions on a file */
+    if (access(pathToFile, X_OK) == 0)
+        args.push_back(pathToFile.c_str());
+    
+
+    /* execve(scriptfile, args, env) */
 }
