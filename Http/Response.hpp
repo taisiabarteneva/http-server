@@ -37,9 +37,10 @@ private:
     std::string fileType;
     std::ostringstream stream;
     bool autoIndexOn;
+    std::string fileName;
 
 
-    void        responseGet(std::vector<Location> locations);
+    void        responseGet(Location* location);
     void        openFile(std::string file);
     void        recieveDataFromFile();
     std::string getHeaders(); //Debug and other
@@ -50,7 +51,7 @@ private:
     void initMIMETypes();
     void initResponsePages();
 
-    Location    *getLocation(std::vector<Location> locations);
+    Location    *getLocation(std::vector<Location> &locations);
     std::string getFileName(Location *location);
     void        checkOtherPreferences(Location *location);
 
