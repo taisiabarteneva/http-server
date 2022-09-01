@@ -53,7 +53,6 @@ ConfigFile& ConfigFile::operator=(const ConfigFile& cfg) {
 		config_file = cfg.config_file;
 		all_listen = cfg.all_listen;
 		all_locations = cfg.all_locations;
-//		locationListExt = file.locationListExt; // cgi
 	}
 	return (*this);
 }

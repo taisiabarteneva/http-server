@@ -25,7 +25,6 @@ struct ConfigFlags {
 	bool    check_allow_methods;
 	bool    check_root;
 	bool    check_max_body_size;
-	bool    check_root_location;
 	bool    check_location;
 	bool    check_autoindex;
 	bool    check_index;
