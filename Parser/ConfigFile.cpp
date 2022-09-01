@@ -16,7 +16,7 @@ ConfigFile::ConfigFile() {
 void ConfigFile::setDefaultConfigValues(map<string, string>& config) {
     config["listen"] = DEFAULT_IP_PORT;
 	config["server_name"] = "";
-	config["allow_methods"] = "";
+	config["allow_methods"] = "GET/POST/DELETE";
 	config["client_max_body_size"] = "10M";
 	config["root"] = "";
 	config["autoindex"] = "off";
