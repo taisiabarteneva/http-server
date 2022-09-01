@@ -12,6 +12,7 @@
 # include <fstream>
 # include <vector>
 # include "../Server/Server.hpp"
+# include "../CGI/CGI.hpp"
 # include "Request.hpp"
 
 enum StartLine {
@@ -37,20 +38,21 @@ private:
     std::string fileType;
     std::ostringstream stream;
     bool autoIndexOn;
+    std::string fileName;
 
 
-    void        responseGet(std::vector<Location> locations);
+    void        responseGet(Location* location);
     void        openFile(std::string file);
     void        recieveDataFromFile();
     std::string getHeaders(); //Debug and other
-    void        responsePost(std::string root);
+    void        responsePost(Location *location);
     void        responseDelete(std::string root);
     void        responseError(std::string code, std::string path);
     void initStatusCodes();
     void initMIMETypes();
     void initResponsePages();
 
-    Location    *getLocation(std::vector<Location> locations);
+    Location    *getLocation(std::vector<Location> &locations);
     std::string getFileName(Location *location);
     void        checkOtherPreferences(Location *location);
 

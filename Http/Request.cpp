@@ -137,6 +137,7 @@ std::string Request::toString() //TODO:: DEBUG
     {
         ret += it->first + ": " + it->second + "\r\n";
     }
+    ret += buffer;
     return ret;
 }
 

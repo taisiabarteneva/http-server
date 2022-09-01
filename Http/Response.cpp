@@ -173,6 +173,7 @@ void Response::initResponsePages()
 {
     errors["403"] = "resources/errors/403.html";
     errors["404"] = "resources/errors/404.html";
+    errors["405"] = "resources/errors/405.html";
 }
 
 Response::Response()
@@ -184,7 +185,6 @@ Response::Response()
     initResponsePages();
     bytes = 0;
     bytesRead = 0;
-
 }
 
 Response::~Response()
@@ -196,12 +196,15 @@ Response::~Response()
 std::string Response::prepareResponse(std::vector<Location> locations, Request* request)
 {
     this->request = request;
+    Location *location = getLocation(locations);
     if (request->getMethod() == "GET")
-        responseGet(locations);
+        responseGet(location);
+    else if (request->getMethod() == "POST")
+        responsePost(location);
     return (getHeaders());
 }
 
-Location    *Response::getLocation(std::vector<Location> locations)
+Location    *Response::getLocation(std::vector<Location> &locations)
 {
     int pos;
     int start;
@@ -250,6 +253,9 @@ Location    *Response::getLocation(std::vector<Location> locations)
             ret = &(*it);
         }
     }
+    ret->printLocationInfo();
+    fileName = getFileName(ret);
+    checkOtherPreferences(ret);
     return ret;
 }
 
@@ -266,8 +272,7 @@ std::string Response::getFileName(Location *location)
         filePath = "resources/";
     else if (filePath.back() != '/')
         filePath += '/';
-        int i = fileURI.find_last_not_of(location->getPath());
-    fileURI.erase(0, i - 1);
+    fileURI.erase(0, location->getPath().length());
     if (fileURI.empty())
     {
         fileURI = location->getIndex();
@@ -293,48 +298,48 @@ void    Response::checkOtherPreferences(Location *location)
     //     std::cout << i << std::endl;
     // }
     // location->printLocationInfo();
-    map<string, string> i = location->getErrors();
-    // std::cout << "SIZE: " << i.size() << std::endl;
-        std::cout << "ERRORS GOT" << std::endl;
-    if (i.size() != 0)
-    {
-    std::map<std::string, std::string>::iterator it = location->getErrors().begin();
-        std::cout << "ERRORS GOT" << std::endl;
-    std::map<std::string, std::string>::iterator it1 = location->getErrors().end();
-        std::cout << "ERRORS GOT" << std::endl;
-        errors.insert(location->getErrors().begin(), location->getErrors().end());
-    }
-    else
-        std::cout << "Kek" << std::endl;
+    // map<string, string> i = location->getErrors(); // segfault
+    // // std::cout << "SIZE: " << i.size() << std::endl;
+    //     std::cout << "ERRORS GOT" << std::endl;
+    // if (i.size() != 0)
+    // {
+    // std::map<std::string, std::string>::iterator it = location->getErrors().begin();
+    //     std::cout << "ERRORS GOT" << std::endl;
+    // std::map<std::string, std::string>::iterator it1 = location->getErrors().end();
+    //     std::cout << "ERRORS GOT" << std::endl;
+    //     errors.insert(location->getErrors().begin(), location->getErrors().end());
+    // }
+    // else
+    //     std::cout << "Kek" << std::endl;
 }
 
-void    Response::responseGet(std::vector<Location> locations)
+void    Response::responseGet(Location* location)
 {
-    Location *location = getLocation(locations);
-    std::string fileName = getFileName(location);
-    std::cout << "File Name: " << fileName << std::endl;
-    checkOtherPreferences(location);
-    // std::cout << fileName << std::endl; //TODO: debug
-    openFile(fileName);
-    if (reader.fail())
+    if (std::find(location->getAllowMethods().begin(), location->getAllowMethods().end(), "GET") == location->getAllowMethods().end())
+        responseError("405", getErrorPage("405"));
+    else
     {
-        // if (autoIndexOn)
-        //     checkFolder(); //TODO:
-        if (!access(fileName.c_str(), F_OK))
+        openFile(fileName);
+        if (reader.fail())
         {
-            std::cerr << "Permission denied" << std::endl;
-            responseError("403", getErrorPage("403"));
+            // if (autoIndexOn)
+            //     checkFolder(); //TODO: autoindex
+            if (!access(fileName.c_str(), F_OK))
+            {
+                std::cerr << "Permission denied" << std::endl;
+                responseError("403", getErrorPage("403"));
+            }
+            else
+            {
+                std::cerr << "File not found" << std::endl;
+                responseError("404", getErrorPage("404"));
+            }
         }
         else
         {
-            std::cerr << "File not found" << std::endl;
-            responseError("404", getErrorPage("404"));
+            setCode("200");
+            setStatus(statusCodes[200]);
         }
-    }
-    else
-    {
-        setCode("200");
-        setStatus(statusCodes[200]);
     }
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
     setHeader("Content-Length", getFileSize());
@@ -343,24 +348,33 @@ void    Response::responseGet(std::vector<Location> locations)
     setHeader("Accept-Ranges", "bytes");
 }
 
-// void    Response::responsePost(std::string root)
-// {
-//     std::string postContentType;
-//     //TODO: запихнуть в отдельный метод поиска в response; или нет
-//     postContentType = request->getHeaderValue("Content-Type");
-//     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-//     if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
-//     {
-        
+void    Response::responsePost(Location * location)
+{
+    CGI cgi(*request); // TODO: перенести в runCGI
+    std::cout << "We are here\n";
+    cgi.start(location); // TODO: перенести в runCGI
 
-//         std::cout << postContentType << std::endl << std::endl;
-//         std::cout << request->getBody() << std::endl;
-//     }
-//     else if (postContentType.compare("multipart/form-data"))
-//     {
-//         std::cout << postContentType << std::endl << std::endl;
-//     }
-// }
+    std::string postContentType;
+    //TODO: запихнуть в отдельный метод поиска в response; или нет
+    postContentType = request->getHeaderValue("Content-Type");
+    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
+    {
+        //if checkCGI()
+        //  runCGI(); //TODO: здесь CGI
+        //else 
+        // {
+        // responseGet(location);
+        //     return;
+        // }
+        std::cout << request->toString() << std::endl; //debug 
+        std::cout << postContentType << std::endl << std::endl;
+    }
+    else if (postContentType.compare("multipart/form-data"))
+    {
+        std::cout << postContentType << std::endl << std::endl;
+    }
+}
 
 // void    Response::responseDelete(std::string root)
 // {
@@ -396,6 +410,7 @@ void    Response::openFile(std::string file)
     reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
     if (reader.fail())
     {
+        std::cout << "Filename is : " << file << std::endl;
         std::cerr << "Open file failure" << std::endl;
         return ; 
     }
