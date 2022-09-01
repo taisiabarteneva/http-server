@@ -23,12 +23,11 @@ public:
     size_t              getClientMaxBodySize() const;
     string              getRoot() const;
     string              getPath() const;
-    string              getCgiPath() const;
-    string              getCgiExtension() const;
     string              getIndex() const;
     string              getAutoindex() const;
     vector<string>      getAllowMethods() const;
     map<string, string> getErrors() const;
+	string              getCgiDir() const;
 	void                printLocationInfo();
 
 private:
@@ -37,8 +36,7 @@ private:
     size_t              client_max_body_size;
     string              root;
     string              path;
-    string              cgi_path;
-    string              cgi_extension;
+    string              cgi_dir;
     string              autoindex;
     string              index;
     vector<string>      allow_methods;

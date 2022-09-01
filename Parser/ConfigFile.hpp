@@ -46,8 +46,7 @@ public:
 	bool    checkIsIndex(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
     bool    checkLocationClosingBracket(ConfigFlags &flags, vector<string> &words,
                                         map<string, string>& config, ConfigFlags& utils_flags);
-    bool    checkIsCgiPath(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
-    string  checkMaintainCgiExtension(ConfigFlags &flags, string word, map<string, string>& config);
+	bool    checkIsCgiDir(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
 
     Server              createNewServer(string ip_port, vector<Location> locations);
     Location            createNewLocation(map<string, string>& config);

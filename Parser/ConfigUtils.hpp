@@ -10,8 +10,7 @@ enum ConfigModules {
 	CLIENT_MAX_BODY_SIZE,
 	AUTOINDEX,
 	INDEX,
-	CGI_EXT,
-	CGI_PATH,
+	CGI_DIR,
 	AUTHENTICATION,
 	LOCATION,
 	ERROR,
@@ -32,8 +31,7 @@ struct ConfigFlags {
 	bool    check_index;
 	bool    check_all_read;
     bool    is_opening_bracket;
-    bool    check_cgi_path;
-    bool    check_cgi_ext;
+    bool    check_cgi_dir;
 
 //	bool    check_authentication;
 //	bool	is_ext;

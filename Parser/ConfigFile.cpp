@@ -21,8 +21,7 @@ void ConfigFile::setDefaultConfigValues(map<string, string>& config) {
 	config["root"] = "";
 	config["autoindex"] = "off";
 	config["index"] = "";
-	config["cgi_path"] = "";
-    config["cgi_extension"] = "";
+	config["cgi_dir"] = "";
 	config["path"] = "/";
 //	config["authentication"] = "";
 }
@@ -36,8 +35,7 @@ void ConfigFile::setConfigModules() {
 	modules["root"] = ROOT;
 	modules["autoindex"] = AUTOINDEX;
 	modules["index"] = INDEX;
-	modules["cgi_ext"] = CGI_EXT;
-	modules["cgi_path"] = CGI_PATH;
+	modules["cgi_dir"] = CGI_DIR;
 	modules["authentication"] = AUTHENTICATION;
 	modules["error"] = ERROR;
 	modules["location"] = LOCATION;
@@ -295,39 +293,37 @@ Location ConfigFile::createNewLocation(map<string, string>& config) {
 	return loc;
 }
 
-string    ConfigFile::checkMaintainCgiExtension(ConfigFlags &flags, string word, map<string, string>& config) {
-    vector<string>::iterator it = cgi_extension.begin();
-    if (word.find('.') == string::npos) {
-        cout << "28" << endl;
-        cout << "Invalid cgi extension" << endl;
-        exit(EXIT_FAILURE);
-    }
-    string ext = word.substr(word.find('.') + 1, word.find(';') - word.find('.') - 1);
-    while (it != cgi_extension.end()) {
-        if (*it == ext)
-            return ext;
-        ++it;
-    }
-    cout << "29" << endl;
-    cout << "Invalid cgi extension" << endl;
-    exit(EXIT_FAILURE);
-}
+//string    ConfigFile::checkMaintainCgiExtension(ConfigFlags &flags, string word, map<string, string>& config) {
+//    vector<string>::iterator it = cgi_extension.begin();
+//    if (word.find('.') == string::npos) {
+//        cout << "28" << endl;
+//        cout << "Invalid cgi extension" << endl;
+//        exit(EXIT_FAILURE);
+//    }
+//    string ext = word.substr(word.find('.') + 1, word.find(';') - word.find('.') - 1);
+//    while (it != cgi_extension.end()) {
+//        if (*it == ext)
+//            return ext;
+//        ++it;
+//    }
+//    cout << "29" << endl;
+//    cout << "Invalid cgi extension" << endl;
+//    exit(EXIT_FAILURE);
+//}
 
-bool    ConfigFile::checkIsCgiPath(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
-    if (flags.check_server && words.size() == 2) {
-        if (flags.check_cgi_path)
-        {
-            cout << "27" << endl;
-            exit(EXIT_FAILURE);
-        }
-        config["cgi_extension"] = checkMaintainCgiExtension(flags, words[1], config);
-        config["cgi_path"] = words[1].substr(0, words[1].find(';'));
-        flags.check_cgi_ext = true;
-        flags.check_cgi_path = true;
-        return true;
-    }
-    cout << "26" << endl;
-    exit(EXIT_FAILURE);
+bool    ConfigFile::checkIsCgiDir(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
+	if (flags.check_server && words.size() == 2) {
+		if (flags.check_cgi_dir)
+		{
+			cout << "27" << endl;
+			exit(EXIT_FAILURE);
+		}
+		config["cgi_dir"] = words[1].substr(0, words[1].find(';'));
+		flags.check_cgi_dir = true;
+		return true;
+	}
+	cout << "26" << endl;
+	exit(EXIT_FAILURE);
 }
 
 void ConfigFile::parsingConfigFile(const string &file) {
@@ -420,8 +416,8 @@ void ConfigFile::parsingConfigFile(const string &file) {
 			case ERROR:
 				checkIsErrorPage(utils_flags, str_words, this->config_file);
 				break;
-			case CGI_PATH:
-                checkIsCgiPath(utils_flags, str_words, this->config_file);
+			case CGI_DIR:
+                checkIsCgiDir(utils_flags, str_words, this->config_file);
 			case AUTHENTICATION:
 				break;
 			case BRACKET:
@@ -492,8 +488,8 @@ void    ConfigFile::parsingLocation(vector<string>& words, ConfigFlags& loc_util
         case ERROR:
                 checkIsErrorPage(loc_utils_flags, words, tmp_config);
             break;
-        case CGI_PATH:
-            checkIsCgiPath(loc_utils_flags, words, tmp_config);
+        case CGI_DIR:
+            checkIsCgiDir(loc_utils_flags, words, tmp_config);
             break;
         case AUTHENTICATION:
             break;
