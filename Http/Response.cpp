@@ -272,8 +272,7 @@ std::string Response::getFileName(Location *location)
         filePath = "resources/";
     else if (filePath.back() != '/')
         filePath += '/';
-        int i = fileURI.find_last_not_of(location->getPath());
-    fileURI.erase(0, i - 1);
+    fileURI.erase(0, location->getPath().length());
     if (fileURI.empty())
     {
         fileURI = location->getIndex();
@@ -400,7 +399,7 @@ void Response::recieveDataFromFile()
 void    Response::openFile(std::string file)
 {
     reader.clear();
-    reader.open("resources/formpage.html", std::ios::in | std::ios::binary | std::ios::ate);
+    reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
     if (reader.fail())
     {
         std::cout << "Filename is : " << file << std::endl;
