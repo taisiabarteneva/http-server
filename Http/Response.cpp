@@ -344,22 +344,30 @@ void    Response::responseGet(Location* location)
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
     setHeader("Content-Length", getFileSize());
     // setHeader("Transfer-Encoding", "chunked");//TODO
-    setHeader("Connection", "keep-alive"); //TODO: ???
+    setHeader("Connection", "close"); //TODO: ???
     setHeader("Accept-Ranges", "bytes");
 }
 
 void    Response::responsePost(Location * location)
 {
-    CGI cgi(*request);
+    CGI cgi(*request); // TODO: перенести в runCGI
     std::cout << "We are here\n";
-    cgi.start(location);
+    cgi.start(location); // TODO: перенести в runCGI
 
     std::string postContentType;
     //TODO: запихнуть в отдельный метод поиска в response; или нет
     postContentType = request->getHeaderValue("Content-Type");
     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
+    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
     {
+        //if checkCGI()
+        //  runCGI(); //TODO: здесь CGI
+        //else 
+        // {
+        // responseGet(location);
+        //     return;
+        // }
+        std::cout << request->toString() << std::endl; //debug 
         std::cout << postContentType << std::endl << std::endl;
     }
     else if (postContentType.compare("multipart/form-data"))
