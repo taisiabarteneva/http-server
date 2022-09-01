@@ -173,6 +173,7 @@ void Response::initResponsePages()
 {
     errors["403"] = "resources/errors/403.html";
     errors["404"] = "resources/errors/404.html";
+    errors["405"] = "resources/errors/405.html";
 }
 
 Response::Response()
@@ -184,7 +185,6 @@ Response::Response()
     initResponsePages();
     bytes = 0;
     bytesRead = 0;
-
 }
 
 Response::~Response()
@@ -196,96 +196,89 @@ Response::~Response()
 std::string Response::prepareResponse(std::vector<Location> locations, Request* request)
 {
     this->request = request;
+    Location *location = getLocation(locations);
     if (request->getMethod() == "GET")
-        responseGet(locations);
+        responseGet(location);
     return (getHeaders());
 }
 
-Location    *Response::getLocation(std::vector<Location> locations)
+Location    *Response::getLocation(std::vector<Location> &locations)
 {
-    int pos = 0;
+    int pos;
+    int start;
     std::string currentLocationPath;
     std::string path = request->getURI();
-    Location    *ret;
+    Location* ret;
+    std::string comp1;
+    std::string comp2;
     int compability;
     int maxCompability = 0;
 
+    if (path.back() != '/')
+        path += '/';
     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
     {
         currentLocationPath = it->getPath();
-        compability = 0;
-        // pos = currentLocationPath.find('/', pos);
-        // pos++;
+        if (currentLocationPath.back() != '/')
+            currentLocationPath += '/';
+        start = currentLocationPath.find('/');
+        start++;
         pos = 0;
-        while ((pos = currentLocationPath.find('/', pos)) != std::string::npos)
+        compability = 0;
+        while (pos != std::string::npos)
         {
-            pos++;
-            if (path.compare(0, 2, currentLocationPath))
+            pos = currentLocationPath.find('/', start);
+            if (pos == std::string::npos)
             {
-                std::cout << path.compare(0, pos, currentLocationPath) << std::endl;
-                std::cout << "current path: " << currentLocationPath <<
-                "\nPath from request: " << path << std::endl;
-                compability++;
+                if (maxCompability == 0 && !currentLocationPath.compare("/"))
+                    ret = &(*it);
+                break;
             }
+            comp1 = currentLocationPath.substr(start, pos - start);
+            comp2 = path.substr(start, pos - start);
+            if (comp1.compare(comp2) == 0)
+                compability++;
             else
             {
-                std::cout << path.substr(0, pos) << std::endl;
-                std::cout << currentLocationPath.substr(0, pos) << std::endl;
-                std::cout << "current path: " << currentLocationPath << " not found" << std::endl;
                 compability = 0;
-                break ;
+                break;
             }
+            start = pos + 1;
         }
         if (maxCompability < compability)
         {
-            maxCompability = compability;
+            maxCompability  = compability;
             ret = &(*it);
         }
     }
-    std::cout << "final path: " << ret->getPath() << std::endl;
-
-
-    // int compability;
-    // int maxCompability = 0;
-    // int tmpSlashPos = 0;
-    // Location *returnLocation = NULL;
-    // std::string recievedPath = request->getURI();
-
-    // for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++)
-    // {
-    //     std::string tmpPath = it->getPath();
-    //     compability = 0;
-    //     while ((tmpSlashPos = tmpPath.find('/', tmpSlashPos)) != std::string::npos)
-    //     {
-    //         tmpSlashPos++;
-    //         if (!recievedPath.compare(0, tmpSlashPos, tmpPath))
-    //             compability++;
-    //         // tmpPath = tmpPath.substr(tmpPath.find('/') + 1);
-    //     }
-    //     if (maxCompability < compability)
-    //     {
-    //         maxCompability = compability;
-    //         returnLocation = &(*it);
-    //     }
-    // }
-    // request->setLocation(returnLocation); //TODO: не забыть для POST и DELETE
-    // return returnLocation;
+    ret->printLocationInfo();
+    fileName = getFileName(ret);
+    checkOtherPreferences(ret);
+    return ret;
 }
 
 std::string Response::getFileName(Location *location)
 {
     std::string filePath;
-    std::string fileName;
+    std::string fileURI;
 
+    fileURI = request->getURI();
     if (location == NULL)
         return "resources/index.html";
     filePath = location->getRoot();
     if (filePath.empty())
         filePath = "resources/";
-    fileName = location->getIndex();
-    if (fileName.empty())
-        fileName = "index.html";
-    return (filePath + fileName);
+    else if (filePath.back() != '/')
+        filePath += '/';
+        int i = fileURI.find_last_not_of(location->getPath());
+    fileURI.erase(0, i - 1);
+    if (fileURI.empty())
+    {
+        fileURI = location->getIndex();
+        if (fileURI.empty())
+            fileURI = "index.html";
+    }
+    return (filePath + fileURI);
 
 }
 
@@ -303,60 +296,75 @@ void    Response::checkOtherPreferences(Location *location)
     //     i = location->getRoot() + i;
     //     std::cout << i << std::endl;
     // }
-    // errors.insert(location->getErrors().begin(), location->getErrors().end());
+    // location->printLocationInfo();
+    // map<string, string> i = location->getErrors(); // segfault
+    // // std::cout << "SIZE: " << i.size() << std::endl;
+    //     std::cout << "ERRORS GOT" << std::endl;
+    // if (i.size() != 0)
+    // {
+    // std::map<std::string, std::string>::iterator it = location->getErrors().begin();
+    //     std::cout << "ERRORS GOT" << std::endl;
+    // std::map<std::string, std::string>::iterator it1 = location->getErrors().end();
+    //     std::cout << "ERRORS GOT" << std::endl;
+    //     errors.insert(location->getErrors().begin(), location->getErrors().end());
+    // }
+    // else
+    //     std::cout << "Kek" << std::endl;
 }
 
-void    Response::responseGet(std::vector<Location> locations)
+void    Response::responseGet(Location* location)
 {
-    Location *location = getLocation(locations);
-    std::string fileName = getFileName(location);
-    // std::cout << "File Name: " << fileName << std::endl;
-    // checkOtherPreferences(location);
-    // std::cout << fileName << std::endl; //TODO: debug
-    openFile(fileName);
-    if (reader.fail())
+    if (std::find(location->getAllowMethods().begin(), location->getAllowMethods().end(), "GET") == location->getAllowMethods().end())
+        responseError("405", getErrorPage("405"));
+    else
     {
-        if (!access(fileName.c_str(), F_OK))
+        openFile(fileName);
+        if (reader.fail())
         {
-            std::cerr << "Permission denied" << std::endl;
-            responseError("403", getErrorPage("403"));
+            // if (autoIndexOn)
+            //     checkFolder(); //TODO: autoindex
+            if (!access(fileName.c_str(), F_OK))
+            {
+                std::cerr << "Permission denied" << std::endl;
+                responseError("403", getErrorPage("403"));
+            }
+            else
+            {
+                std::cerr << "File not found" << std::endl;
+                responseError("404", getErrorPage("404"));
+            }
         }
         else
         {
-            std::cerr << "File not found" << std::endl;
-            responseError("404", getErrorPage("404"));
+            setCode("200");
+            setStatus(statusCodes[200]);
         }
-    }
-    else
-    {
-        setCode("200");
-        setStatus(statusCodes[200]);
     }
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
     setHeader("Content-Length", getFileSize());
     // setHeader("Transfer-Encoding", "chunked");//TODO
-    setHeader("Connection", "close"); //TODO: ???
+    setHeader("Connection", "keep-alive"); //TODO: ???
     setHeader("Accept-Ranges", "bytes");
 }
 
-// void    Response::responsePost(std::string root)
-// {
-//     std::string postContentType;
-//     //TODO: запихнуть в отдельный метод поиска в response; или нет
-//     postContentType = request->getHeaderValue("Content-Type");
-//     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-//     if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
-//     {
+void    Response::responsePost(std::string root)
+{
+    std::string postContentType;
+    //TODO: запихнуть в отдельный метод поиска в response; или нет
+    postContentType = request->getHeaderValue("Content-Type");
+    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
+    {
         
 
-//         std::cout << postContentType << std::endl << std::endl;
-//         std::cout << request->getBody() << std::endl;
-//     }
-//     else if (postContentType.compare("multipart/form-data"))
-//     {
-//         std::cout << postContentType << std::endl << std::endl;
-//     }
-// }
+        std::cout << postContentType << std::endl << std::endl;
+        std::cout << request->getBody() << std::endl;
+    }
+    else if (postContentType.compare("multipart/form-data"))
+    {
+        std::cout << postContentType << std::endl << std::endl;
+    }
+}
 
 // void    Response::responseDelete(std::string root)
 // {
