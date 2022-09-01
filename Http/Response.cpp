@@ -199,6 +199,8 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
     Location *location = getLocation(locations);
     if (request->getMethod() == "GET")
         responseGet(location);
+    else if (request->getMethod() == "POST")
+        responsePost(location);
     return (getHeaders());
 }
 
@@ -347,18 +349,19 @@ void    Response::responseGet(Location* location)
     setHeader("Accept-Ranges", "bytes");
 }
 
-void    Response::responsePost(std::string root)
+void    Response::responsePost(Location * location)
 {
+    CGI cgi(*request);
+    std::cout << "We are here\n";
+    cgi.start(location);
+
     std::string postContentType;
     //TODO: запихнуть в отдельный метод поиска в response; или нет
     postContentType = request->getHeaderValue("Content-Type");
     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
     if (postContentType.compare("application/x-www-form-urlencoded\r\n"))
     {
-        
-
         std::cout << postContentType << std::endl << std::endl;
-        std::cout << request->getBody() << std::endl;
     }
     else if (postContentType.compare("multipart/form-data"))
     {
@@ -397,9 +400,10 @@ void Response::recieveDataFromFile()
 void    Response::openFile(std::string file)
 {
     reader.clear();
-    reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
+    reader.open("resources/formpage.html", std::ios::in | std::ios::binary | std::ios::ate);
     if (reader.fail())
     {
+        std::cout << "Filename is : " << file << std::endl;
         std::cerr << "Open file failure" << std::endl;
         return ; 
     }

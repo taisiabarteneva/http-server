@@ -12,6 +12,7 @@
 # include <fstream>
 # include <vector>
 # include "../Server/Server.hpp"
+# include "../CGI/CGI.hpp"
 # include "Request.hpp"
 
 enum StartLine {
@@ -44,7 +45,7 @@ private:
     void        openFile(std::string file);
     void        recieveDataFromFile();
     std::string getHeaders(); //Debug and other
-    void        responsePost(std::string root);
+    void        responsePost(Location *location);
     void        responseDelete(std::string root);
     void        responseError(std::string code, std::string path);
     void initStatusCodes();

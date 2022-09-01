@@ -2,13 +2,13 @@
 
 CGI::CGI(Request & req): request(req)
 {
-    char dir[MAXDIR];
+    char dir[128];
 
-    getcwd(dir, MAX_DIR);
+    getcwd(dir, 128);
     abs_path = string(dir);
 
-    prepareCGIEnv();    
-    prepareCGIArgs();
+    prepareEnv();
+    // prepareCGIArgs();
 }
 
 CGI::CGI(const CGI & rhs) 
@@ -25,7 +25,7 @@ const CGI & CGI::operator=(const CGI & rhs)
         abs_path = rhs.abs_path;
 
         args = rhs.args;
-        envs = rhs.envs;
+        env = rhs.env;
         // clearArgsArray();
         // this->args = new char*[3];
         // for (int i = 0; i < 3; i++)
@@ -44,6 +44,7 @@ const CGI & CGI::operator=(const CGI & rhs)
         // }
         // env[i] = NULL;
     }
+    return *this;
 }
 
 CGI::~CGI() 
@@ -75,8 +76,8 @@ CGI::~CGI()
 
 void    CGI::prepareEnv(void) 
 {
-    // std::vector<std::string>             envs;
-    // int i;
+    std::vector<std::string>    envs;
+    int                         i;
 
     /* 
         CGI environment variables
@@ -88,7 +89,7 @@ void    CGI::prepareEnv(void)
     /* absolute path for the CGI script */
     envs.push_back("PATH_TRANSLATED=" + abs_path);
     /* URL-encoded information that is sent with GET method request */
-    envs.push_back("QUERY_STRING=" + request.getQueryString());
+    // envs.push_back("QUERY_STRING=" + request);
     /* method used to make the request */
     envs.push_back("REQUEST_METHOD=" + request.getMethod());
     /* data type of the content, used when the client is sending attached content to the server */
@@ -96,14 +97,14 @@ void    CGI::prepareEnv(void)
     /* length of the query information that is available only for POST requests */
     envs.push_back("CONTENT_LENGTH=" + request.getHeaderValue("Content-Length"));
 
-    // this->env = new char*[envs.size() + 1];
-    // std::vector<std::string>::iterator it = env.begin(); i = 0;
-    // for (; it != env.end(); it++; i++)
-    // {
-    //     this->env[i] = new char[it->size() + 1];
-    //     strcpy(this->env[i], it->c_str()); 
-    // }
-    // env[i] = NULL;
+    env = new char*[envs.size() + 1];
+    std::vector<std::string>::iterator it = envs.begin(); i = 0;
+    for (; it != envs.end(); it++, i++)
+    {
+        this->env[i] = new char[it->size() + 1];
+        strcpy(env[i], it->c_str()); 
+    }
+    env[i] = NULL;
 }
 
 void    CGI::prepareArgs(void)
@@ -116,19 +117,76 @@ void    CGI::prepareArgs(void)
     // args[2] = NULL;
 }
 
-void CGI::start(Location * location)
+/*  
+    int execve(const char *pathname, char *const argv[], char *const envp[]) 
+
+    - pathname must be either a binary executable or a script 
+    - argv is an array of pointers to strings passed to the new program
+    as its command-line arguments
+    - envp is an array of pointers to strings, conventionally of the
+    form key=value
+*/
+
+void CGI::handleChildProcess(void)
+{
+    int inputFd, outputFd;
+    int status;
+
+    outputFd = open(TMP_FILE, O_RDWR | O_CREAT | O_TRUNC, 0777);
+    if (outputFd == -1)
+    {
+        perror("open");
+        std::cerr << "[Error] : open() system call failed\n";
+        exit(EXIT_FAILURE);
+    }
+    dup2(outputFd, STDOUT_FILENO);
+    status = execve(args[0], &(args[0]), env);
+    if (status == -1)
+    {
+        std::cerr << "[Error] : execve() system call failed\n";
+        exit(EXIT_FAILURE);
+    }
+}
+
+int CGI::start(Location * location)
 {   
-    int             pid;
+    int             pid, id;
     int             status;
     std::string     path;
     std::string     scriptFile;
 
-    path = location->getCgiPath();
-    scriptFile = path.substr(path.find_last_of('/' + 1)); 
-    args.push_back(scriptFile.c_str());
-    /* X_OK used to check for execute permissions on a file */
-    if (access(path, X_OK) == 0)
-        args.push_back(path.c_str());
+    scriptFile = request.getURI(); // filename // path.substr(path.find_last_of('/' + 1))
 
-    /* execve(scriptfile, args, env) */
+    // path = abs_path + "/" + location->getCgiPath() + scriptFile;
+    path = "/Users/wurrigon/Desktop/http-server/resources/cgi-bin/test.py";
+
+    std::cout << "Path to CGI file is : [ " << path << " ]\n";
+    // args.push_back(scriptFile.c_str());
+
+    if (access(path.c_str(), X_OK) == 0)            /* X_OK used to check for execute permissions on a file */
+        args.push_back((char *)path.c_str());
+    args.push_back(NULL);
+
+    pid = fork();
+    if (pid == -1)
+    {
+        std::cerr << "[Error] : fork() system call failed\n";
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+        handleChildProcess();
+    }
+    else 
+    {
+        id = waitpid(-1, &status, WNOHANG);
+        if (id == -1)
+        {
+            std::cerr << "[Error] : waitpid() system call failed\n";
+            exit(EXIT_FAILURE);
+        }
+    }
+    if (WIFEXITED(status))
+        return WEXITSTATUS(status);
+    return 0;
 }
