@@ -36,6 +36,7 @@ private:
     std::string fileSize;
     std::string fileType;
     std::ostringstream stream;
+    bool autoIndexOn;
 
 
     void        responseGet(std::vector<Location> locations);
@@ -51,6 +52,7 @@ private:
 
     Location    *getLocation(std::vector<Location> locations);
     std::string getFileName(Location *location);
+    void        checkOtherPreferences(Location *location);
 
     void setVersion(std::string& version);
     void setCode(std::string code);

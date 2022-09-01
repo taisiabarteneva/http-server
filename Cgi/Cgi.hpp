@@ -1,27 +1,33 @@
-#ifndef CGI_HPP
-#define CGI_HPP
+#ifndef     CGI_HPP
+# define    CGI_HPP
 
-#include <dir.h>
-#include <vector>
+# include   <dir.h>
+# include   <string>
+# include   <vector>
+ 
+# include "../Http/Request.hpp"
+# include "../Parser/Location.hpp"
 
-#include "../Http/Request.hpp"
+class CGI
+{
+    private:
+        Request                     request;
+        std::string                 abs_path;
+        std::vector<std::string>    envs;
+        std::vector<char *>         args;
+    
+    public:
+        CGI();
+        CGI(const CGI & rhs);
+        const CGI &operator=(const CGI & rhs);
+        ~CGI();
+        void            start(Location * location);
 
-class Cgi {
-public:
-	Cgi();
-	Cgi(const Cgi& cgi_copy);
-	~Cgi();
-
-    void    prepareCgiEnv();
-    void    prepareCgiArgs();
-
-private:
-	Request request;
-    string  abs_path;
-    char**  env;
-    char**  args;
-
-
+    private:
+        // void            clearArgsArray(void);
+        // void            clearEnvArray(void);
+        void            prepareEnv(void);
+        void            prepareArgs(void);
 };
 
 #endif

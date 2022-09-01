@@ -86,6 +86,7 @@ Request::Request()
     headerRead = false;
     bodyRead = false;
     bodyPresent = false;
+    location = NULL;
 }
 
 Request::~Request()
@@ -203,4 +204,14 @@ void Request::resetData()
     headerRead = false;
     bodyRead = false;
     bodyPresent = false;
+}
+
+void Request::setLocation(Location* location)
+{
+    this->location = location;
+}
+
+Location *Request::getLocation()
+{
+    return location;
 }

@@ -4,6 +4,7 @@
 # include "Http/Http.hpp"
 # include "Parser/ConfigFile.hpp"
 # include "Net/Net.hpp"
+
 int main(int argc, char **argv)
 {
 	if (argc != 2)
@@ -14,7 +15,7 @@ int main(int argc, char **argv)
 	Core 	core(argv[1]);
 
 	// core.printInfo();
-	std::cout << "Debugd\n" << std::endl;
+	std::cout << "Debudвdddddssfdssdsddgsdпfdвssddыыjsdddsdddgd\n" << std::endl;
 	core.setUpWebServers();
 	core.runWebServers();
 
