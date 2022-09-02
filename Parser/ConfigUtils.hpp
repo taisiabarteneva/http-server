@@ -31,6 +31,7 @@ struct ConfigFlags {
 	bool    check_all_read;
     bool    is_opening_bracket;
     bool    check_cgi_dir;
+	bool    check_root_location;
 
 //	bool    check_authentication;
 //	bool	is_ext;
