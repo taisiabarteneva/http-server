@@ -35,6 +35,7 @@ class CGI
         void            prepareEnv(void);
         void            prepareArgs(Location* location);
         void            handleChildProcess(void);
+        void            parseEnvFromRequest(std::vector<std::string> & env);
 };
 
 #endif

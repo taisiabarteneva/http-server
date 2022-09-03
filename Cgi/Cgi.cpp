@@ -48,7 +48,7 @@ const CGI & CGI::operator=(const CGI & rhs)
     return *this;
 }
 
-CGI::~CGI() 
+CGI::~CGI()
 {
     if (env)
         clearEnvArray();
@@ -77,6 +77,29 @@ void CGI::clearEnvArray(void)
     delete[] env;
 }
 
+void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
+{
+    int             contentLen;
+    std::string     body(request.getBuffer());
+    std::string     envVar;
+
+    contentLen = atoi(request.getHeaderValue("Content-Length").c_str());
+    body.erase(0, body.find_last_of("\r\n") + 1);  /* http-message body */
+    
+    for (int i = 0; i < contentLen; i++)
+    {
+        if (body[i] != '&')
+            envVar += body[i];
+        else
+        {
+            env.push_back(envVar);
+            envVar = "";
+        }
+    }
+    env.push_back(envVar);
+}
+
+
 void    CGI::prepareEnv(void) 
 {
     std::vector<std::string>    envs;
@@ -86,6 +109,9 @@ void    CGI::prepareEnv(void)
         CGI environment variables
         CGI scripts are given predefined environment variables that provide information about the web server as well as the client
     */
+
+    // toDo : getBuffer() handler, parse env variables
+    parseEnvFromRequest(envs);
 
     /* relative path for the CGI script */
     envs.push_back("PATH_INFO=" + request.getURI());
@@ -99,7 +125,7 @@ void    CGI::prepareEnv(void)
     envs.push_back("CONTENT_TYPE=" + request.getHeaderValue("Content-Type"));
     /* length of the query information that is available only for POST requests */
     envs.push_back("CONTENT_LENGTH=" + request.getHeaderValue("Content-Length"));
-
+    
     env_len = envs.size() + 1;
     env = new char*[env_len];
     std::vector<std::string>::iterator it = envs.begin(); i = 0;
@@ -158,7 +184,6 @@ void CGI::handleChildProcess(void)
     status = execve(args[0], &(args[0]), env);
     if (status == -1)
     {
-        std::cerr << "errno : " << errno << std::endl;
         std::cerr << "[Error] : execve() system call failed\n";
         exit(EXIT_FAILURE);
     }
