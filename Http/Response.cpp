@@ -348,8 +348,15 @@ void    Response::responseGet(Location* location)
     setHeader("Accept-Ranges", "bytes");
 }
 
+void    Response::processPostFiles()
+{
+    
+}
+
 void    Response::responsePost(Location * location)
 {
+    if (std::find(location->getAllowMethods().begin(), location->getAllowMethods().end(), "POST") == location->getAllowMethods().end())
+        responseError("405", getErrorPage("405"));
     CGI cgi(*request); // TODO: перенести в runCGI
     std::cout << "We are here\n";
     cgi.start(location); // TODO: перенести в runCGI
@@ -372,6 +379,7 @@ void    Response::responsePost(Location * location)
     }
     else if (postContentType.compare("multipart/form-data"))
     {
+        processPostFiles();
         std::cout << postContentType << std::endl << std::endl;
     }
 }
