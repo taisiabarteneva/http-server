@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import os
 
 print("<html><head></head><body><h2>Hello,")
