@@ -47,6 +47,7 @@ public:
     bool    checkLocationClosingBracket(ConfigFlags &flags, vector<string> &words,
                                         map<string, string>& config, ConfigFlags& utils_flags);
 	bool    checkIsCgiDir(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
+    bool    checkAuthentication(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
 
     Server              createNewServer(string ip_port, vector<Location> locations);
     Location            createNewLocation(map<string, string>& config);

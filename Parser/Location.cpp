@@ -38,6 +38,8 @@ Location::Location(map<string, string>& loc) {
             cgi_dir = it_loc->second;
         else if (it_loc->first == "allow_methods")
             allow_methods = getTokens(it_loc->second, '/');
+        else if (it_loc->first == "authentication")
+            authentication = it_loc->second;
         else
             errors[it_loc->first] = it_loc->second;
         ++it_loc;
@@ -64,9 +66,10 @@ Location & Location::operator=(const Location& location) {
         index = location.index;
         allow_methods = location.allow_methods;
         errors = location.errors;
+        authentication = location.authentication;
 
 //        this_location = location.this_location;
-//        authentication = location.authentication;
+
     }
     return (*this);
 }
@@ -128,6 +131,10 @@ map<string, string> Location::getErrors() const {
     return errors;
 }
 
+string	Location::getAuthentication() const  {
+    return authentication;
+}
+
 void Location::printLocationInfo() {
 
 	cout << "ip_port: " << ip_port << endl;
@@ -139,6 +146,7 @@ void Location::printLocationInfo() {
 	cout << "autoindex: " << autoindex << endl;
 	cout << "index: " << index << endl;
 	cout << "path: " << path << endl;
+    cout << "authentication: " << authentication << endl;
 
 	vector<string>::iterator it = allow_methods.begin();
 	cout << "allow_methods: ";

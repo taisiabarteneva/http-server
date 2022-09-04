@@ -6,7 +6,7 @@
 # include <map>
 # include <iostream>
 
-#include "ConfigUtils.hpp"
+# include "ConfigUtils.hpp"
 
 using namespace std;
 
@@ -25,6 +25,7 @@ public:
     string              getPath() const;
     string              getIndex() const;
     string              getAutoindex() const;
+    string              getAuthentication() const;
     vector<string>      getAllowMethods() const;
     map<string, string> getErrors() const;
 	string              getCgiDir() const;
@@ -39,11 +40,11 @@ private:
     string              cgi_dir;
     string              autoindex;
     string              index;
+    string              authentication;
     vector<string>      allow_methods;
     map<string, string> errors;
 
 //    map<string, string> this_location;
-//    string    authentication;
 };
 
 #endif
