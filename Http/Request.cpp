@@ -40,11 +40,13 @@ void Request::recieveHeaders(std::string& message)
         headers.insert(vec_header);
         message.erase(0, endOfLine + 2);
     }
+    // std::cout << getBuffer() << std::endl; //TODO: debug
 }
 
 void Request::processHeader()
 {
     size_t len = message.find("\r\n\r\n");
+    size_t bytesLeft;
     if (len == std::string::npos)
         return ;
     message = message.substr(0, len + 4);
@@ -53,8 +55,8 @@ void Request::processHeader()
         bodyRead = true;
     recieveHeaders(message);
     len += 4;
-    bytesRead = totalBytesRead - startLineSize - len; // записать сколько считали (осталось передать)
-    if (bytesRead != 0)
+    bytesLeft = totalBytesRead - startLineSize - len; // записать сколько считали (осталось передать)
+    if (bytesLeft != 0)
         bodyPresent = true;
 }
 
@@ -62,7 +64,102 @@ void Request::processBody()
 {
     if (bytesRead < BUFFER_SIZE)
         bodyRead = true;
-    //здесь также обработка заголовка в POST
+}
+
+void    Request::processPost()
+{
+    std::string content = getHeaderValue("Content-Type");
+    if (content.substr(0, content.find(';')) == "multipart/form-data")
+    {
+        multiBoundary = content.substr(content.find(' ') + 1, content.length());
+        multiBoundary.erase(0, multiBoundary.find_first_not_of('-', multiBoundary.find('=') + 1));
+        // std::cout << "BOUNDARY: " << multiBoundary << std::endl;
+        for (int i = 0; i < bytesRead; i++)
+        {
+            std::cout << buffer[i];
+            if (buffer[i] == '-')
+                multiCheckBoundary(i);
+        }
+        // std::cout << buffer << std::endl;
+    }
+}
+
+bool    Request::multiCheckString(std::string& str)
+{
+    if (str.substr(str.find_first_not_of('-'), str.find("\r\n") - str.find_first_not_of('-')) == multiBoundary)
+    {
+        if (multiFlag == false)
+        {
+            multiFlag = true;
+            return false;
+        }
+        // if (multiWriter.is_open())
+        //     multiWriter.close();// TODO: segfault
+        std::cout << "WEBKIT" << std::endl;;
+        return true;
+    }
+    return false;
+}
+
+void    Request::writeInFile(int pos, std::string fileName)
+{
+    if (!multiWriter.is_open())
+    {
+        multiWriter.open("resources/files/multiTest", std::ofstream::out | std::ofstream::binary | std::ofstream::app);
+    }
+    multiWriter.write(&buffer[pos], BUFFER_SIZE - pos);
+}
+
+void    Request::multiCheckBoundary(int &pos)
+{
+    // std::cout << pos << std::endl;
+    while (buffer[pos] == '-')
+        pos++;
+    if (!multiBuffer.empty())
+    {
+        std::string buf = &buffer[multiBoundary.length() - multiBuffer.length()];
+        buf = multiBuffer + buf;
+        if (multiCheckString(buf))
+        {
+            int position = buf.find("\r\n\r\n") + 4;
+            if (position == std::string::npos)
+                return ;
+            // std::string fileName = buf.substr(buf.find("filename=") + 10, buf.find("\""));
+            std::string fileName = "Hello";
+            // std::cout << "FILE NAME: " << fileName << std::endl;
+            //спарсить заголовок;
+            pos += position;
+            writeInFile(pos, fileName);
+        }
+    }
+    else if (pos + multiBoundary.length() <= BUFFER_SIZE)
+    {
+        std::string buf = &buffer[pos];
+        // std::cout << buf << std::endl;
+        if (multiCheckString(buf))
+        {
+            int position = buf.find("\r\n\r\n") + 4;
+            if (position == std::string::npos)
+                return ;
+            int tmpPos = buf.find("filename=");
+            buf.erase(tmpPos);
+            std::string fileName;
+            if (tmpPos != std::string::npos)
+                fileName = "Hello";
+                // fileName = buf.substr(tmpPos + 10, buf.find("\"") - tmpPos + 10);
+            else
+                fileName = "tmp";
+            std::cout << "FILE NAME: " << fileName << std::endl;
+            //спарсить заголовок;
+            pos += position;
+            writeInFile(pos, fileName);//TODO write in file
+        }
+
+    }
+    else
+    {
+        multiBuffer = std::string(&buffer[pos], BUFFER_SIZE - bytesRead);
+    }
 }
 
 void Request::processRequest()
@@ -75,6 +172,8 @@ void Request::processRequest()
         processHeader();
     if (bodyPresent && !bodyRead && startLineRead && headerRead)
         processBody();
+    if (method == POST && bodyPresent)
+        processPost();
 }
 
 Request::Request()
@@ -86,6 +185,8 @@ Request::Request()
     headerRead = false;
     bodyRead = false;
     bodyPresent = false;
+    multiFlag = false;
+    multiReading = false;
     location = NULL;
 }
 

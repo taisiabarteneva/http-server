@@ -253,7 +253,7 @@ Location    *Response::getLocation(std::vector<Location> &locations)
             ret = &(*it);
         }
     }
-    ret->printLocationInfo();
+    // ret->printLocationInfo();
     fileName = getFileName(ret);
     checkOtherPreferences(ret);
     return ret;
@@ -291,7 +291,7 @@ void    Response::checkOtherPreferences(Location *location)
         autoIndexOn = true;
     else
         autoIndexOn = false;
-    std::cout << "AUTOINDEX: " << location->getAutoindex() << std::endl;
+    // std::cout << "AUTOINDEX: " << location->getAutoindex() << std::endl;
     // for (std::string i : location->getErrors())
     // {
     //     i = location->getRoot() + i;
@@ -348,18 +348,13 @@ void    Response::responseGet(Location* location)
     setHeader("Accept-Ranges", "bytes");
 }
 
-void    Response::processPostFiles()
-{
-    
-}
-
 void    Response::responsePost(Location * location)
 {
     if (std::find(location->getAllowMethods().begin(), location->getAllowMethods().end(), "POST") == location->getAllowMethods().end())
         responseError("405", getErrorPage("405"));
-    CGI cgi(*request); // TODO: перенести в runCGI
+    // CGI cgi(*request); // TODO: перенести в runCGI
     std::cout << "We are here\n";
-    cgi.start(); // TODO: перенести в runCGI
+    // cgi.start(); // TODO: перенести в runCGI
 
     std::string postContentType;
     //TODO: запихнуть в отдельный метод поиска в response; или нет
@@ -379,7 +374,6 @@ void    Response::responsePost(Location * location)
     }
     else if (postContentType.compare("multipart/form-data"))
     {
-        processPostFiles();
         std::cout << postContentType << std::endl << std::endl;
     }
 }

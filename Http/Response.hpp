@@ -12,7 +12,7 @@
 # include <fstream>
 # include <vector>
 # include "../Server/Server.hpp"
-# include "../CGI/CGI.hpp"
+# include "../CGI/Cgi.hpp"
 # include "Request.hpp"
 
 enum StartLine {

@@ -8,6 +8,7 @@
 # include <cstring>
 # include <string>
 # include <sys/socket.h>
+# include <fstream>
 # include "../Parser/Location.hpp"
 
 
@@ -29,6 +30,7 @@ private:
     char buffer[BUFFER_SIZE];
     int bytesRead;
     int startLineSize;
+    int headersSize;
     size_t totalBytesRead;
     bool startLineRead;
     bool headerRead;
@@ -36,12 +38,26 @@ private:
     bool bodyPresent;
     Location *location;
 
+    /* POST multipart/form-data */
+    std::string multiBuffer;
+    // int multiBufferSize;
+    bool multiFlag;
+    std::string multiBoundary;
+    bool multiReading;
+    ofstream multiWriter;
+
     void processStartLine();
     void processHeader();
     void processBody();
     std::string recieveStartLine(std::string& message, char delimiter);
     void recieveHeaders(std::string& message);
     std::string getStartLineString();
+    void    processPost();
+
+
+    void    multiCheckBoundary(int &pos);
+    bool    multiCheckString(std::string& str);
+    void    writeInFile(int pos, std::string fileName);
     
 public:
     void processRequest();
