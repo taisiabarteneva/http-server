@@ -1,14 +1,14 @@
 #include "CGI.hpp"
 
-CGI::CGI(Request & req): request(req)
+CGI::CGI(Request & req, Location * location)
+:   request(req)
 {
     char dir[128];
-
     getcwd(dir, 128);
     abs_path = string(dir);
 
     prepareEnv();
-    // prepareCGIArgs();
+    prepareArgs(location);
 }
 
 CGI::CGI(const CGI & rhs) 
@@ -18,61 +18,87 @@ CGI::CGI(const CGI & rhs)
 
 const CGI & CGI::operator=(const CGI & rhs)
 {
-    /* check memory leaks */
+    int     i, len;
+    char    **tmp_env;
+    char    **tmp_arg;
+
+    /* ToDo : check memory leaks */
     if (this != &rhs)
     {
         request = rhs.request;
         abs_path = rhs.abs_path;
 
-        args = rhs.args;
-        env = rhs.env;
-        // clearArgsArray();
-        // this->args = new char*[3];
-        // for (int i = 0; i < 3; i++)
-        // {
-        //     args[i] = new char*[rhs.args[i].size() + 1];
-        //     strcpy(this->args[i], rhs.args[i]);
-        // }
-        // args[i] = NULL;
+        tmp_arg = new char*[2];
+        tmp_arg[0] = new char[strlen(args[0]) + 1];
+        strcpy(tmp_arg[0], rhs.args[0]);
+        clearArgsArray();
+        args = tmp_arg;
 
-        // clearEnvArray();
-        // this->env = new char*[rhs.env.size() + 1];
-        // for (int i = 0; i < rhs.env.size(); i++)
-        // {
-        //     env[i] = new char[rhs.env[i].size() + 1];
-        //     strcpy(this->env[i], rhs.env[i]); 
-        // }
-        // env[i] = NULL;
+        tmp_env = new char*[env_len];
+        for (i = 0; i < env_len; i++)
+        {
+            len = strlen(rhs.env[i]);
+            tmp_env[i] = new char[len];
+            strcpy(tmp_env[i], rhs.env[i]); 
+        }
+        env[i] = NULL;
+        clearEnvArray();
+        env = tmp_env;
     }
     return *this;
 }
 
-CGI::~CGI() 
+CGI::~CGI()
 {
-    // if (env)
-    //     clearEnvArray();
-    // if (args)
-    //     clearArgsArray();
+    if (env)
+        clearEnvArray();
+    if (args)
+        clearArgsArray();
 };
 
 /* --------------------------------------------------------- private */
-// void CGI::clearArgsArray(void)
-// {
-//     for (int i = 0; i < args.size(); ++i) 
-//     {
-//         delete[] args[i];
-//     }
-//     delete[] args;
-// }
+void CGI::clearArgsArray(void)
+{
+    for (int i = 0; i < 2; ++i) 
+    {
+        if (args[i])
+            delete[] args[i];
+    }
+    delete[] args;
+}
 
-// void CGI::clearEnvArray(void)
-// {
-//     for (int i = 0; i < env.size(); ++i) 
-//     {
-//         delete[] env[i];
-//     }
-//     delete[] env;
-// }
+void CGI::clearEnvArray(void)
+{
+    for (int i = 0; i < env_len; ++i) 
+    {
+        if (env[i])
+            delete[] env[i];
+    }
+    delete[] env;
+}
+
+void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
+{
+    int             contentLen;
+    std::string     body(request.getBuffer());
+    std::string     envVar;
+
+    contentLen = atoi(request.getHeaderValue("Content-Length").c_str());
+    body.erase(0, body.find_last_of("\r\n") + 1);  /* http-message body */
+    
+    for (int i = 0; i < contentLen; i++)
+    {
+        if (body[i] != '&')
+            envVar += body[i];
+        else
+        {
+            env.push_back(envVar);
+            envVar = "";
+        }
+    }
+    env.push_back(envVar);
+}
+
 
 void    CGI::prepareEnv(void) 
 {
@@ -83,6 +109,9 @@ void    CGI::prepareEnv(void)
         CGI environment variables
         CGI scripts are given predefined environment variables that provide information about the web server as well as the client
     */
+
+    // toDo : getBuffer() handler, parse env variables
+    parseEnvFromRequest(envs);
 
     /* relative path for the CGI script */
     envs.push_back("PATH_INFO=" + request.getURI());
@@ -96,8 +125,9 @@ void    CGI::prepareEnv(void)
     envs.push_back("CONTENT_TYPE=" + request.getHeaderValue("Content-Type"));
     /* length of the query information that is available only for POST requests */
     envs.push_back("CONTENT_LENGTH=" + request.getHeaderValue("Content-Length"));
-
-    env = new char*[envs.size() + 1];
+    
+    env_len = envs.size() + 1;
+    env = new char*[env_len];
     std::vector<std::string>::iterator it = envs.begin(); i = 0;
     for (; it != envs.end(); it++, i++)
     {
@@ -107,14 +137,25 @@ void    CGI::prepareEnv(void)
     env[i] = NULL;
 }
 
-void    CGI::prepareArgs(void)
+void    CGI::prepareArgs(Location* location)
 {
-    // args = new char*[3];
-    // args[0] = new char[request.getLocation.getCGIPath().size() + 1];
-    // args[0] = strcpy(args[0], request.getLocation.getCGIPath().c_str());
-    // args[1] = new char[abs_path.size() + 1];
-    // args[1] = strcpy(args[1], abs_path.c_str());
-    // args[2] = NULL;
+    std::string     path, scriptFile, cgiDir;
+    
+    scriptFile = request.getURI();
+    scriptFile.erase(0, scriptFile.find_first_not_of('/'));
+    cgiDir = location->getCgiDir();
+    if (cgiDir.empty())
+        cgiDir = DEFAULT_CGI_DIR;
+    path = abs_path + "/" + cgiDir + scriptFile;
+        
+    std::cout << "Path to CGI file is : [ " << path << " ]\n";
+
+    args = new char*[2];
+    args[0] = new char[path.size() + 1];
+    if (access(path.c_str(), X_OK) == 0)        /* X_OK used to check for execute permissions on a file */
+        args[0] = strcpy(args[0], path.c_str());
+    // else ?
+    args[1] = NULL;
 }
 
 /*  
@@ -148,24 +189,10 @@ void CGI::handleChildProcess(void)
     }
 }
 
-int CGI::start(Location * location)
+int CGI::start()
 {   
     int             pid, id;
     int             status;
-    std::string     path;
-    std::string     scriptFile;
-
-    scriptFile = request.getURI(); // filename // path.substr(path.find_last_of('/' + 1))
-
-    // path = abs_path + "/" + location->getCgiPath() + scriptFile;
-    path = "/Users/wurrigon/Desktop/http-server/resources/cgi-bin/test.py";
-
-    std::cout << "Path to CGI file is : [ " << path << " ]\n";
-    // args.push_back(scriptFile.c_str());
-
-    if (access(path.c_str(), X_OK) == 0)            /* X_OK used to check for execute permissions on a file */
-        args.push_back((char *)path.c_str());
-    args.push_back(NULL);
 
     pid = fork();
     if (pid == -1)
@@ -174,9 +201,7 @@ int CGI::start(Location * location)
         exit(EXIT_FAILURE);
     }
     else if (pid == 0)
-    {
         handleChildProcess();
-    }
     else 
     {
         id = waitpid(-1, &status, WNOHANG);

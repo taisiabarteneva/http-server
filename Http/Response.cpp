@@ -359,7 +359,7 @@ void    Response::responsePost(Location * location)
         responseError("405", getErrorPage("405"));
     CGI cgi(*request); // TODO: перенести в runCGI
     std::cout << "We are here\n";
-    cgi.start(location); // TODO: перенести в runCGI
+    cgi.start(); // TODO: перенести в runCGI
 
     std::string postContentType;
     //TODO: запихнуть в отдельный метод поиска в response; или нет
@@ -374,8 +374,8 @@ void    Response::responsePost(Location * location)
         // responseGet(location);
         //     return;
         // }
-        std::cout << request->toString() << std::endl; //debug 
-        std::cout << postContentType << std::endl << std::endl;
+        // std::cout << request->toString() << std::endl; //debug 
+        // std::cout << postContentType << std::endl << std::endl;
     }
     else if (postContentType.compare("multipart/form-data"))
     {

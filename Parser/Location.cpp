@@ -34,10 +34,8 @@ Location::Location(map<string, string>& loc) {
             autoindex = it_loc->second;
         else if (it_loc->first == "index")
             index = it_loc->second;
-        else if (it_loc->first == "cgi_path")
-            cgi_path = it_loc->second;
-        else if (it_loc->first == "cgi_extension")
-            cgi_extension = it_loc->second;
+        else if (it_loc->first == "cgi_dir")
+            cgi_dir = it_loc->second;
         else if (it_loc->first == "allow_methods")
             allow_methods = getTokens(it_loc->second, '/');
         else
@@ -45,7 +43,7 @@ Location::Location(map<string, string>& loc) {
         ++it_loc;
     }
 
-//	printLocationInfo();
+	printLocationInfo();
 }
 
 Location::Location(const Location& location) {
@@ -61,8 +59,7 @@ Location & Location::operator=(const Location& location) {
         server_name = location.server_name;
         client_max_body_size = location.client_max_body_size;
         root = location.root;
-        cgi_path = location.cgi_path;
-        cgi_extension = location.cgi_extension;
+        cgi_dir = location.cgi_dir;
         autoindex = location.autoindex;
         index = location.index;
         allow_methods = location.allow_methods;
@@ -111,12 +108,8 @@ string Location::getPath() const {
     return path;
 }
 
-string Location::getCgiPath() const {
-    return cgi_path;
-}
-
-string Location::getCgiExtension() const {
-    return cgi_extension;
+string Location::getCgiDir() const {
+	return cgi_dir;
 }
 
 string Location::getIndex() const {
@@ -142,10 +135,10 @@ void Location::printLocationInfo() {
 	cout << "client_max_body_size: " << client_max_body_size << endl;
 	cout << "root: " << root << endl;
 	cout << "path: " << path << endl;
-	cout << "cgi_path: " << cgi_path << endl;
-	cout << "cgi_extension: " << cgi_extension << endl;
+	cout << "cgi_dir: " << cgi_dir << endl;
 	cout << "autoindex: " << autoindex << endl;
 	cout << "index: " << index << endl;
+	cout << "path: " << path << endl;
 
 	vector<string>::iterator it = allow_methods.begin();
 	cout << "allow_methods: ";

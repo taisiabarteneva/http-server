@@ -9,7 +9,8 @@
 # include "../Http/Request.hpp"
 # include "../Parser/Location.hpp"
 
-# define TMP_FILE "cgi.serv"
+# define TMP_FILE           "cgi.serv"
+# define DEFAULT_CGI_DIR    "resources/cgi-bin/"
 
 class CGI
 {
@@ -17,22 +18,24 @@ class CGI
         Request                     request;
         std::string                 abs_path;
         char**                      env;
-        std::vector<char *>         args;
+        char**                      args;
+        int                         env_len;
     
     public:
         CGI();
-        CGI(Request & req);
+        CGI(Request & req, Location *location);
         CGI(const CGI & rhs);
         const CGI &operator=(const CGI & rhs);
         ~CGI();
-        int            start(Location * location);
+        int            start();
 
     private:
-        // void            clearArgsArray(void);
-        // void            clearEnvArray(void);
+        void            clearArgsArray(void);
+        void            clearEnvArray(void);
         void            prepareEnv(void);
-        void            prepareArgs(void);
+        void            prepareArgs(Location* location);
         void            handleChildProcess(void);
+        void            parseEnvFromRequest(std::vector<std::string> & env);
 };
 
 #endif
