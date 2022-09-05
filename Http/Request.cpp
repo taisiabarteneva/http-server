@@ -76,7 +76,7 @@ void    Request::processPost()
         // std::cout << "BOUNDARY: " << multiBoundary << std::endl;
         for (int i = 0; i < bytesRead; i++)
         {
-            std::cout << buffer[i];
+            // std::cout << buffer[i];
             if (buffer[i] == '-')
                 multiCheckBoundary(i);
         }
@@ -86,7 +86,11 @@ void    Request::processPost()
 
 bool    Request::multiCheckString(std::string& str)
 {
-    if (str.substr(str.find_first_not_of('-'), str.find("\r\n") - str.find_first_not_of('-')) == multiBoundary)
+    int pos1 = str.find_first_not_of('-');
+    int pos2 = str.find("\r\n") - str.find_first_not_of('-');
+    if (pos1 == std::string::npos)
+        return false;
+    if (str.substr(pos1, pos2) == multiBoundary)
     {
         if (multiFlag == false)
         {
@@ -101,18 +105,54 @@ bool    Request::multiCheckString(std::string& str)
     return false;
 }
 
-void    Request::writeInFile(int pos, std::string fileName)
+void    Request::writeInFile(int begin, int end, std::string fileName)
 {
-    if (!multiWriter.is_open())
+    // if (!multiWriter.is_open())
+    // {
+        multiWriter.close();
+        multiWriter.open("resources/files/" + fileName, std::ofstream::out | std::ofstream::binary | std::ofstream::app);
+        if (multiWriter.fail())
+            std::cout << "GOVNO PROIZOSHLO" << std::endl;
+    // }
+    multiWriter.write(&buffer[begin], end - begin);
+    std::flush(multiWriter);
+}
+
+void    Request::multiGetHeaders(std::string buf, int pos)
+{
+    multiFileName = "";
+
+    int pos1 = buf.find("\r\n\r\n") + 4;
+    multiBodyPosition = pos1 + pos;
+    if (!multiHeaderBuf.empty())
+        buf = multiHeaderBuf + buf;
+    if (multiBodyPosition == std::string::npos + 4)
     {
-        multiWriter.open("resources/files/multiTest", std::ofstream::out | std::ofstream::binary | std::ofstream::app);
+        multiHeaderBuf = buf;
+        multiHeaderRead = false;
+        return ;
     }
-    multiWriter.write(&buffer[pos], BUFFER_SIZE - pos);
+    multiHeaderRead = true;
+    buf = buf.substr(0, pos1);
+    size_t posFileName = buf.find("filename=");
+    if (posFileName == std::string::npos)
+    {
+        char alpha[26] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+                        'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                        'o', 'p', 'q', 'r', 's', 't', 'u',
+                        'v', 'w', 'x', 'y', 'z' };
+        for (int i = 0; i<20; i++)
+            multiFileName = multiFileName + alpha[rand() % 26];
+    }
+    else
+        multiFileName = buf.substr(posFileName + 10, buf.substr(buf.find("filename=") + 10).find('\"'));
+    std::cout << multiFileName << std::endl;
 }
 
 void    Request::multiCheckBoundary(int &pos)
 {
     // std::cout << pos << std::endl;
+    int tmpPos = pos;
     while (buffer[pos] == '-')
         pos++;
     if (!multiBuffer.empty())
@@ -121,15 +161,7 @@ void    Request::multiCheckBoundary(int &pos)
         buf = multiBuffer + buf;
         if (multiCheckString(buf))
         {
-            int position = buf.find("\r\n\r\n") + 4;
-            if (position == std::string::npos)
-                return ;
-            // std::string fileName = buf.substr(buf.find("filename=") + 10, buf.find("\""));
-            std::string fileName = "Hello";
-            // std::cout << "FILE NAME: " << fileName << std::endl;
-            //спарсить заголовок;
-            pos += position;
-            writeInFile(pos, fileName);
+            multiGetHeaders(buf, pos);
         }
     }
     else if (pos + multiBoundary.length() <= BUFFER_SIZE)
@@ -138,21 +170,15 @@ void    Request::multiCheckBoundary(int &pos)
         // std::cout << buf << std::endl;
         if (multiCheckString(buf))
         {
-            int position = buf.find("\r\n\r\n") + 4;
-            if (position == std::string::npos)
-                return ;
-            int tmpPos = buf.find("filename=");
-            buf.erase(tmpPos);
-            std::string fileName;
-            if (tmpPos != std::string::npos)
-                fileName = "Hello";
-                // fileName = buf.substr(tmpPos + 10, buf.find("\"") - tmpPos + 10);
-            else
-                fileName = "tmp";
-            std::cout << "FILE NAME: " << fileName << std::endl;
-            //спарсить заголовок;
-            pos += position;
-            writeInFile(pos, fileName);//TODO write in file
+            if (multiHeaderRead == true)
+            {
+                std::cout << "HELLO" << std::endl;
+                multiHeaderRead = false;
+                writeInFile(multiBodyPosition, tmpPos - 2, multiFileName);
+            }
+            multiGetHeaders(buf, pos);
+
+            // writeInFile(pos, fileName);//TODO write in file
         }
 
     }
@@ -188,6 +214,8 @@ Request::Request()
     multiFlag = false;
     multiReading = false;
     location = NULL;
+    multiHeaderRead = false;
+    multiBodyPosition = 0;
 }
 
 Request::~Request()
