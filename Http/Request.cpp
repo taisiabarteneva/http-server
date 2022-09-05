@@ -74,12 +74,19 @@ void    Request::processPost()
         multiBoundary = content.substr(content.find(' ') + 1, content.length());
         multiBoundary.erase(0, multiBoundary.find_first_not_of('-', multiBoundary.find('=') + 1));
         // std::cout << "BOUNDARY: " << multiBoundary << std::endl;
+        multiBodyPosition = 0;
         for (int i = 0; i < bytesRead; i++)
         {
             // std::cout << buffer[i];
             if (buffer[i] == '-')
                 multiCheckBoundary(i);
         }
+        std::string kostyl = &buffer[multiBodyPosition];
+        int kostylBoundryPos = kostyl.find("\r\n--");
+        if (kostylBoundryPos != std::string::npos)
+            writeInFile(multiBodyPosition, multiBodyPosition + kostylBoundryPos, multiFileName);
+        else
+            writeInFile(multiBodyPosition, bytesRead, multiFileName);
         // std::cout << buffer << std::endl;
     }
 }
@@ -107,13 +114,14 @@ bool    Request::multiCheckString(std::string& str)
 
 void    Request::writeInFile(int begin, int end, std::string fileName)
 {
-    // if (!multiWriter.is_open())
-    // {
+    if (multiNewFile)
+    {
+        multiNewFile = false;
         multiWriter.close();
-        multiWriter.open("resources/files/" + fileName, std::ofstream::out | std::ofstream::binary | std::ofstream::app);
+        multiWriter.open("resources/files/" + fileName, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
         if (multiWriter.fail())
             std::cout << "GOVNO PROIZOSHLO" << std::endl;
-    // }
+    }
     multiWriter.write(&buffer[begin], end - begin);
     std::flush(multiWriter);
 }
@@ -161,6 +169,12 @@ void    Request::multiCheckBoundary(int &pos)
         buf = multiBuffer + buf;
         if (multiCheckString(buf))
         {
+            multiNewFile = true;
+            if (multiHeaderRead == true)
+            {
+                multiHeaderRead = false;
+                writeInFile(multiBodyPosition, tmpPos - 2, multiFileName);
+            }
             multiGetHeaders(buf, pos);
         }
     }
@@ -170,9 +184,9 @@ void    Request::multiCheckBoundary(int &pos)
         // std::cout << buf << std::endl;
         if (multiCheckString(buf))
         {
+            multiNewFile = true;
             if (multiHeaderRead == true)
             {
-                std::cout << "HELLO" << std::endl;
                 multiHeaderRead = false;
                 writeInFile(multiBodyPosition, tmpPos - 2, multiFileName);
             }
@@ -216,6 +230,7 @@ Request::Request()
     location = NULL;
     multiHeaderRead = false;
     multiBodyPosition = 0;
+    multiNewFile = false;
 }
 
 Request::~Request()

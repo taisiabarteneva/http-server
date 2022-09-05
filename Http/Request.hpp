@@ -49,6 +49,7 @@ private:
     bool multiHeaderRead;
     std::string multiHeaderBuf;
     ofstream multiWriter;
+    bool multiNewFile;
 
     void processStartLine();
     void processHeader();
