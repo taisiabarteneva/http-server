@@ -1,8 +1,8 @@
-#include "CGI.hpp"
+#include "Cgi.hpp"
 
-CGI::CGI(Request & req, Location * location)
-:   request(req)
+CGI::CGI(Request * req, Location * location)
 {
+    request = req;
     char dir[128];
     getcwd(dir, 128);
     abs_path = string(dir);
@@ -80,10 +80,10 @@ void CGI::clearEnvArray(void)
 void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
 {
     int             contentLen;
-    std::string     body(request.getBuffer());
+    std::string     body(request->getBuffer());
     std::string     envVar;
 
-    contentLen = atoi(request.getHeaderValue("Content-Length").c_str());
+    contentLen = atoi(request->getHeaderValue("Content-Length").c_str());
     body.erase(0, body.find_last_of("\r\n") + 1);  /* http-message body */
     
     for (int i = 0; i < contentLen; i++)
@@ -114,17 +114,17 @@ void    CGI::prepareEnv(void)
     parseEnvFromRequest(envs);
 
     /* relative path for the CGI script */
-    envs.push_back("PATH_INFO=" + request.getURI());
+    envs.push_back("PATH_INFO=" + request->getURI());
     /* absolute path for the CGI script */
     envs.push_back("PATH_TRANSLATED=" + abs_path);
     /* URL-encoded information that is sent with GET method request */
     // envs.push_back("QUERY_STRING=" + request);
     /* method used to make the request */
-    envs.push_back("REQUEST_METHOD=" + request.getMethod());
+    envs.push_back("REQUEST_METHOD=" + request->getMethod());
     /* data type of the content, used when the client is sending attached content to the server */
-    envs.push_back("CONTENT_TYPE=" + request.getHeaderValue("Content-Type"));
+    envs.push_back("CONTENT_TYPE=" + request->getHeaderValue("Content-Type"));
     /* length of the query information that is available only for POST requests */
-    envs.push_back("CONTENT_LENGTH=" + request.getHeaderValue("Content-Length"));
+    envs.push_back("CONTENT_LENGTH=" + request->getHeaderValue("Content-Length"));
     
     env_len = envs.size() + 1;
     env = new char*[env_len];
@@ -141,7 +141,7 @@ void    CGI::prepareArgs(Location* location)
 {
     std::string     path, scriptFile, cgiDir;
     
-    scriptFile = request.getURI();
+    scriptFile = request->getURI();
     scriptFile.erase(0, scriptFile.find_first_not_of('/'));
     cgiDir = location->getCgiDir();
     if (cgiDir.empty())

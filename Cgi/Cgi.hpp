@@ -4,7 +4,7 @@
 # include   <unistd.h>
 # include   <fcntl.h>
 # include   <string>
-# include   <vector> 
+# include   <vector>
 
 # include "../Http/Request.hpp"
 # include "../Parser/Location.hpp"
@@ -15,7 +15,7 @@
 class CGI
 {
     private:
-        Request                     request;
+        Request*                     request;
         std::string                 abs_path;
         char**                      env;
         char**                      args;
@@ -23,7 +23,7 @@ class CGI
     
     public:
         CGI();
-        CGI(Request & req, Location *location);
+        CGI(Request * req, Location *location);
         CGI(const CGI & rhs);
         const CGI &operator=(const CGI & rhs);
         ~CGI();
