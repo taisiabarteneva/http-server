@@ -46,7 +46,7 @@ private:
     void        recieveDataFromFile();
     std::string getHeaders(); //Debug and other
     void        responsePost(Location *location);
-    void        responseDelete(std::string root);
+    void        responseDelete(Location *location);
     void        responseError(std::string code, std::string path);
     void initStatusCodes();
     void initMIMETypes();

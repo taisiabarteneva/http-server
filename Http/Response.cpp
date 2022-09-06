@@ -201,6 +201,15 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
         responseGet(location);
     else if (request->getMethod() == "POST")
         responsePost(location);
+    else if (request->getMethod() == "DELETE")
+        responseDelete(location);
+    else
+    {
+        responseError("405", getErrorPage("405"));
+        setHeader("Content-Type", getMIME());
+        setHeader("Content-Length", getFileSize());
+        setHeader("Connection", "close");
+    }
     return (getHeaders());
 }
 
@@ -402,10 +411,10 @@ void    Response::responsePost(Location * location)
     
 }
 
-// void    Response::responseDelete(std::string root)
-// {
+void    Response::responseDelete(Location * location)
+{
 
-// }
+}
 
 void    Response::responseError(std::string code, std::string path)
 {
