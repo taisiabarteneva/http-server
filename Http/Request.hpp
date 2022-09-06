@@ -50,6 +50,7 @@ private:
     std::string multiHeaderBuf;
     ofstream multiWriter;
     bool multiNewFile;
+    bool multiNewBuf;
 
     void processStartLine();
     void processHeader();

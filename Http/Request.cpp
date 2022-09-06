@@ -81,6 +81,8 @@ void    Request::processPost()
             if (buffer[i] == '-')
                 multiCheckBoundary(i);
         }
+        if (bytesRead < BUFFER_SIZE && )
+            multiNewFile = true;
         std::string kostyl = &buffer[multiBodyPosition];
         int kostylBoundryPos = kostyl.find("\r\n--");
         if (kostylBoundryPos != std::string::npos)
@@ -104,8 +106,6 @@ bool    Request::multiCheckString(std::string& str)
             multiFlag = true;
             return false;
         }
-        // if (multiWriter.is_open())
-        //     multiWriter.close();// TODO: segfault
         std::cout << "WEBKIT" << std::endl;;
         return true;
     }
@@ -120,7 +120,7 @@ void    Request::writeInFile(int begin, int end, std::string fileName)
         multiWriter.close();
         multiWriter.open("resources/files/" + fileName, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
         if (multiWriter.fail())
-            std::cout << "GOVNO PROIZOSHLO" << std::endl;
+            std::cout << "Failed to create output file" << std::endl;
     }
     multiWriter.write(&buffer[begin], end - begin);
     std::flush(multiWriter);
@@ -149,7 +149,7 @@ void    Request::multiGetHeaders(std::string buf, int pos)
                         'h', 'i', 'j', 'k', 'l', 'm', 'n',
                         'o', 'p', 'q', 'r', 's', 't', 'u',
                         'v', 'w', 'x', 'y', 'z' };
-        for (int i = 0; i<20; i++)
+        for (int i = 0; i < 20; i++)
             multiFileName = multiFileName + alpha[rand() % 26];
     }
     else
