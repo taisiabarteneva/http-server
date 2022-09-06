@@ -360,8 +360,9 @@ void    Response::responsePost(Location * location)
     //TODO: запихнуть в отдельный метод поиска в response; или нет
     postContentType = request->getHeaderValue("Content-Type");
     std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-    if (postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
+    if (!postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
     {
+        std::cout << "Kek" << std::endl;
         //if checkCGI()
         //  runCGI(); //TODO: здесь CGI
         //else 
@@ -372,10 +373,33 @@ void    Response::responsePost(Location * location)
         // std::cout << request->toString() << std::endl; //debug 
         // std::cout << postContentType << std::endl << std::endl;
     }
-    else if (postContentType.compare("multipart/form-data"))
+    else if (postContentType.substr(0, 19) == "multipart/form-data")
     {
         std::cout << postContentType << std::endl << std::endl;
+        openFile("resources/success.html");
+        if (reader.fail())
+        {
+            if (!access(fileName.c_str(), F_OK))
+            {
+                std::cerr << "Permission denied" << std::endl;
+                responseError("403", getErrorPage("403"));
+            }
+            else
+            {
+                std::cerr << "File not found" << std::endl;
+                responseError("404", getErrorPage("404"));
+            }
+        }
+        else
+        {
+            setCode("200");
+            setStatus(statusCodes[200]);
+        }
+        setHeader("Content-Type", getMIME());
+        setHeader("Content-Length", getFileSize());
+        setHeader("Connection", "close");
     }
+    
 }
 
 // void    Response::responseDelete(std::string root)
