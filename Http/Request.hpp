@@ -51,6 +51,7 @@ private:
     ofstream multiWriter;
     bool multiNewFile;
     bool multiNewBuf;
+    bool multiNewRead;
 
     void processStartLine();
     void processHeader();

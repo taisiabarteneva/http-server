@@ -75,13 +75,14 @@ void    Request::processPost()
         multiBoundary.erase(0, multiBoundary.find_first_not_of('-', multiBoundary.find('=') + 1));
         // std::cout << "BOUNDARY: " << multiBoundary << std::endl;
         multiBodyPosition = 0;
+        multiNewRead = true;
         for (int i = 0; i < bytesRead; i++)
         {
             // std::cout << buffer[i];
             if (buffer[i] == '-')
                 multiCheckBoundary(i);
         }
-        if (bytesRead < BUFFER_SIZE && )
+        if (multiBodyPosition != 0)
             multiNewFile = true;
         std::string kostyl = &buffer[multiBodyPosition];
         int kostylBoundryPos = kostyl.find("\r\n--");
@@ -184,12 +185,14 @@ void    Request::multiCheckBoundary(int &pos)
         // std::cout << buf << std::endl;
         if (multiCheckString(buf))
         {
-            multiNewFile = true;
+            if (multiNewRead == false)
+                multiNewFile = true;
             if (multiHeaderRead == true)
             {
                 multiHeaderRead = false;
                 writeInFile(multiBodyPosition, tmpPos - 2, multiFileName);
             }
+            multiNewRead = false;
             multiGetHeaders(buf, pos);
 
             // writeInFile(pos, fileName);//TODO write in file
