@@ -14,6 +14,7 @@ all: $(NAME)
 
 $(NAME) : $(OBJS)
 	$(CXX) $(CFLAGS) $(OBJS) -o $(NAME)
+	@mkdir -p resources/files
 
 $(OBJS_DIR)/%.o : %.cpp | $(OBJS_DIR)
 	$(CXX) $(CFLAGS) -c $< -o $@
