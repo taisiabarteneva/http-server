@@ -9,7 +9,7 @@
 # include "../Http/Request.hpp"
 # include "../Parser/Location.hpp"
 
-# define TMP_FILE           "cgi.serv"
+# define TMP_FILE           "resources/cgi.serv"
 # define DEFAULT_CGI_DIR    "resources/cgi-bin/"
 
 class CGI

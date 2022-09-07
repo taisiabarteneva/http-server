@@ -356,7 +356,7 @@ void    Response::responseGet(Location* location)
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
     setHeader("Content-Length", getFileSize());
     // setHeader("Transfer-Encoding", "chunked");//TODO
-    setHeader("Connection", "close"); //TODO: ???
+    setHeader("Connection", "keep-alive"); //TODO: ???
     setHeader("Accept-Ranges", "bytes");
 }
 
@@ -367,17 +367,35 @@ void    Response::responsePost(Location * location)
         responseError("405", getErrorPage("405"));
     else
     {
-        // CGI cgi(*request); // TODO: перенести в runCGI
-        std::cout << "We are here\n";
-        // cgi.start(); // TODO: перенести в runCGI
 
         std::string postContentType;
         //TODO: запихнуть в отдельный метод поиска в response; или нет
         postContentType = request->getHeaderValue("Content-Type");
         std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-        if (!postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
+        if (!postContentType.compare("application/x-www-form-urlencoded"))// TODO: проверить скрипт или нет
         {
-            std::cout << "Kek" << std::endl;
+            CGI cgi(request, location); // TODO: перенести в runCGI
+            cgi.start(); // TODO: перенести в runCGI
+            std::cout << postContentType << std::endl << std::endl;
+            openFile("resources/cgi.serv");
+            if (reader.fail())
+            {
+                if (!access(fileName.c_str(), F_OK))
+                {
+                    std::cerr << "Permission denied" << std::endl;
+                    responseError("403", getErrorPage("403"));
+                }
+                else
+                {
+                    std::cerr << "File not found" << std::endl;
+                    responseError("404", getErrorPage("404"));
+                }
+            }
+            else
+            {
+                setCode("200");
+                setStatus(statusCodes[200]);
+            }
             //if checkCGI()
             //  runCGI(); //TODO: здесь CGI
             //else 
@@ -419,7 +437,32 @@ void    Response::responsePost(Location * location)
 
 void    Response::responseDelete(Location * location)
 {
-
+    vector<string> methods = location->getAllowMethods();
+    if (std::find(methods.begin(), methods.end(), "DELETE") == methods.end())
+        responseError("405", getErrorPage("405"));
+     else
+    {
+        openFile(fileName);
+        if (reader.fail())
+        {
+            if (!access(fileName.c_str(), F_OK))
+            {
+                std::cerr << "Permission denied" << std::endl;
+                responseError("403", getErrorPage("403"));
+            }
+            else
+            {
+                std::cerr << "File not found" << std::endl;
+                responseError("404", getErrorPage("404"));
+            }
+        }
+        else
+        {
+            std::remove(fileName.data());
+            setCode("204");
+            setStatus(statusCodes[204]);
+        }
+    }
 }
 
 void    Response::responseError(std::string code, std::string path)

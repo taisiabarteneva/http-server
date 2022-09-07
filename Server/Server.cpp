@@ -77,6 +77,13 @@ void Server::createListenSocket(void)
 		close(listenSocket);
         exit(EXIT_FAILURE);
     }
+    if (setsockopt(listenSocket, SOL_SOCKET, SO_NOSIGPIPE, \
+                    (const void *)&enable_mode, sizeof(enable_mode)) < 0)
+    {
+        std::cerr << "[Error] : setsockopt() system call failed\n";
+		close(listenSocket);
+        exit(EXIT_FAILURE);
+    }
 	/* 	
 		set socket to be non-blocking. all of the sockets for
   		the incoming connections will also be nonblocking since

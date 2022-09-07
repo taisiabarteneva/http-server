@@ -10,15 +10,13 @@ OBJS = $(patsubst %.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
 CFLAGS = -g # -fsanitize=address -Wall -Wextra -Werror
 
-CONFIG = 1.cfg
-
 all: $(NAME)
 
 $(NAME) : $(OBJS)
 	$(CXX) $(CFLAGS) $(OBJS) -o $(NAME)
 	@mkdir -p resources/files
 
-$(OBJS_DIR)/%.o : %.cpp $(CONFIG) | $(OBJS_DIR)
+$(OBJS_DIR)/%.o : %.cpp | $(OBJS_DIR)
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 $(OBJS_DIR):
