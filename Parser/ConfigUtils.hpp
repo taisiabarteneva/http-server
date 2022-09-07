@@ -15,6 +15,7 @@ enum ConfigModules {
 	LOCATION,
 	ERROR,
 	BRACKET,
+	REDIRECTION,
 	DEFAULT
 };
 
@@ -33,6 +34,7 @@ struct ConfigFlags {
     bool    check_cgi_dir;
 	bool    check_root_location;
 	bool    check_authentication;
+	bool    check_redirection;
 };
 
 

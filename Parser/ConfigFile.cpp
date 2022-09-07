@@ -23,6 +23,7 @@ void ConfigFile::setDefaultConfigValues(map<string, string>& config) {
 	config["index"] = "";
 	config["cgi_dir"] = "";
 	config["path"] = "/";
+	config["redirection"] = "";
 	config["authentication"] = "no";
 }
 
@@ -39,6 +40,7 @@ void ConfigFile::setConfigModules() {
 	modules["authentication"] = AUTHENTICATION;
 	modules["error"] = ERROR;
 	modules["location"] = LOCATION;
+	modules["redirection"] = REDIRECTION;
 	modules["}"] = BRACKET;
 }
 
@@ -325,6 +327,21 @@ bool    ConfigFile::checkIsCgiDir(ConfigFlags &flags, vector<string> &words, map
 	exit(EXIT_FAILURE);
 }
 
+bool    ConfigFile::checkRedirection(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
+	if (flags.check_server && words.size() == 2) {
+		if (flags.check_redirection)
+		{
+			cout << "38" << endl;
+			exit(EXIT_FAILURE);
+		}
+		config["redirection"] = words[1].substr(0, words[1].find(';'));
+		flags.check_redirection = true;
+		return true;
+	}
+	cout << "39" << endl;
+	exit(EXIT_FAILURE);
+}
+
 bool    ConfigFile::checkAuthentication(ConfigFlags &flags, vector<string> &words, map<string, string>& config) {
     if (flags.check_server && words.size() == 2) {
         if (flags.check_authentication)
@@ -435,6 +452,9 @@ void ConfigFile::parsingConfigFile(const string &file) {
 			case AUTHENTICATION:
                 checkAuthentication(utils_flags, str_words, this->config_file);
 				break;
+			case REDIRECTION:
+				checkRedirection(utils_flags, str_words, this->config_file);
+				break;
 			case BRACKET:
 				checkClosingBracket(utils_flags, str_words);
 				break;
@@ -509,6 +529,9 @@ void    ConfigFile::parsingLocation(vector<string>& words, ConfigFlags& loc_util
         case AUTHENTICATION:
             checkAuthentication(loc_utils_flags, words, tmp_config);
             break;
+	    case REDIRECTION:
+		    checkRedirection(loc_utils_flags, words, tmp_config);
+		    break;
         default:
 //            cout << words[0] << endl;
             cout << "Location in config_file is invalid" << endl;
@@ -523,3 +546,4 @@ vector<Location>    ConfigFile::getAllLocations() {
 vector<Server>  ConfigFile::getAllServers() {
 	return all_servers;
 }
+

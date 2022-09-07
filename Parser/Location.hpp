@@ -29,6 +29,7 @@ public:
     vector<string>      getAllowMethods() const;
     map<string, string> getErrors() const;
 	string              getCgiDir() const;
+	string              getRedirection() const;
 	void                printLocationInfo();
 
 private:
@@ -41,10 +42,9 @@ private:
     string              autoindex;
     string              index;
     string              authentication;
+	string              redirection;
     vector<string>      allow_methods;
     map<string, string> errors;
-
-//    map<string, string> this_location;
 };
 
 #endif

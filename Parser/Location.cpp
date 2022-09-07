@@ -40,6 +40,8 @@ Location::Location(map<string, string>& loc) {
             allow_methods = getTokens(it_loc->second, '/');
         else if (it_loc->first == "authentication")
             authentication = it_loc->second;
+        else if (it_loc->first == "redirection")
+	        redirection = it_loc->second;
         else
             errors[it_loc->first] = it_loc->second;
         ++it_loc;
@@ -123,6 +125,10 @@ string Location::getAutoindex() const {
     return autoindex;
 }
 
+string Location::getRedirection() const {
+	return redirection;
+}
+
 vector<string>  Location::getAllowMethods() const {
     return allow_methods;
 }
@@ -147,6 +153,7 @@ void Location::printLocationInfo() {
 	cout << "index: " << index << endl;
 	cout << "path: " << path << endl;
     cout << "authentication: " << authentication << endl;
+    cout << "redirection: " << redirection << endl;
 
 	vector<string>::iterator it = allow_methods.begin();
 	cout << "allow_methods: ";
