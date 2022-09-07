@@ -16,6 +16,10 @@ int Net::listen_net(std::string address)
     {
         return SETOPT_ERROR;
     }
+    if (setsockopt(listen_socket, SOL_SOCKET, SO_NOSIGPIPE, &enable, sizeof(enable)) < 0)
+    {
+        return SETOPT_ERROR;
+    }
     char ipv4[16];
     char port[6];
     if (parse_address(address, ipv4, port) != 0)
