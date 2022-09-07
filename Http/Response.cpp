@@ -285,6 +285,8 @@ std::string Response::getFileName(Location *location)
     if (fileURI.empty())
     {
         fileURI = location->getIndex();
+        if (fileURI.back() == '/')
+            fileURI = fileURI.substr(0, fileURI.size() - 1);
         if (fileURI.empty())
             fileURI = "index.html";
     }
@@ -324,7 +326,8 @@ void    Response::checkOtherPreferences(Location *location)
 
 void    Response::responseGet(Location* location)
 {
-    if (std::find(location->getAllowMethods().begin(), location->getAllowMethods().end(), "GET") == location->getAllowMethods().end())
+    vector<string> methods = location->getAllowMethods();
+    if (std::find(methods.begin(), methods.end(), "GET") == methods.end())
         responseError("405", getErrorPage("405"));
     else
     {
@@ -359,56 +362,59 @@ void    Response::responseGet(Location* location)
 
 void    Response::responsePost(Location * location)
 {
-    if (std::find(location->getAllowMethods().begin(), location->getAllowMethods().end(), "POST") == location->getAllowMethods().end())
+    vector<string> methods = location->getAllowMethods();
+    if (std::find(methods.begin(), methods.end(), "POST") == methods.end())
         responseError("405", getErrorPage("405"));
-    // CGI cgi(*request); // TODO: перенести в runCGI
-    std::cout << "We are here\n";
-    // cgi.start(); // TODO: перенести в runCGI
+    else
+    {
+        // CGI cgi(*request); // TODO: перенести в runCGI
+        std::cout << "We are here\n";
+        // cgi.start(); // TODO: перенести в runCGI
 
-    std::string postContentType;
-    //TODO: запихнуть в отдельный метод поиска в response; или нет
-    postContentType = request->getHeaderValue("Content-Type");
-    std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
-    if (!postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
-    {
-        std::cout << "Kek" << std::endl;
-        //if checkCGI()
-        //  runCGI(); //TODO: здесь CGI
-        //else 
-        // {
-        // responseGet(location);
-        //     return;
-        // }
-        // std::cout << request->toString() << std::endl; //debug 
-        // std::cout << postContentType << std::endl << std::endl;
-    }
-    else if (postContentType.substr(0, 19) == "multipart/form-data")
-    {
-        std::cout << postContentType << std::endl << std::endl;
-        openFile("resources/success.html");
-        if (reader.fail())
+        std::string postContentType;
+        //TODO: запихнуть в отдельный метод поиска в response; или нет
+        postContentType = request->getHeaderValue("Content-Type");
+        std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
+        if (!postContentType.compare("application/x-www-form-urlencoded\r\n"))// TODO: проверить скрипт или нет
         {
-            if (!access(fileName.c_str(), F_OK))
+            std::cout << "Kek" << std::endl;
+            //if checkCGI()
+            //  runCGI(); //TODO: здесь CGI
+            //else 
+            // {
+            // responseGet(location);
+            //     return;
+            // }
+            // std::cout << request->toString() << std::endl; //debug 
+            // std::cout << postContentType << std::endl << std::endl;
+        }
+        else if (postContentType.substr(0, 19) == "multipart/form-data")
+        {
+            std::cout << postContentType << std::endl << std::endl;
+            openFile("resources/success.html");
+            if (reader.fail())
             {
-                std::cerr << "Permission denied" << std::endl;
-                responseError("403", getErrorPage("403"));
+                if (!access(fileName.c_str(), F_OK))
+                {
+                    std::cerr << "Permission denied" << std::endl;
+                    responseError("403", getErrorPage("403"));
+                }
+                else
+                {
+                    std::cerr << "File not found" << std::endl;
+                    responseError("404", getErrorPage("404"));
+                }
             }
             else
             {
-                std::cerr << "File not found" << std::endl;
-                responseError("404", getErrorPage("404"));
+                setCode("200");
+                setStatus(statusCodes[200]);
             }
-        }
-        else
-        {
-            setCode("200");
-            setStatus(statusCodes[200]);
         }
         setHeader("Content-Type", getMIME());
         setHeader("Content-Length", getFileSize());
         setHeader("Connection", "close");
     }
-    
 }
 
 void    Response::responseDelete(Location * location)

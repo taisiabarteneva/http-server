@@ -11,6 +11,7 @@
 # include <unistd.h>
 # include <fstream>
 # include <vector>
+#include <algorithm>
 # include "../Server/Server.hpp"
 # include "../Cgi/Cgi.hpp"
 # include "Request.hpp"
