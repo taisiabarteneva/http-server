@@ -43,15 +43,16 @@ private:
 
 
     void        responseGet(Location* location);
-    void        openFile(std::string file);
-    void        recieveDataFromFile();
-    std::string getHeaders(); //Debug and other
     void        responsePost(Location *location);
     void        responseDelete(Location *location);
     void        responseError(std::string code, std::string path);
-    void initStatusCodes();
-    void initMIMETypes();
-    void initResponsePages();
+    void        responseRedirect(Location *location);
+    void        openFile(std::string file);
+    void        recieveDataFromFile();
+    std::string getHeaders(); //Debug and other
+    void        initStatusCodes();
+    void        initMIMETypes();
+    void        initResponsePages();
 
     Location    *getLocation(std::vector<Location> &locations);
     std::string getFileName(Location *location);

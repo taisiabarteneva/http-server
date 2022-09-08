@@ -174,6 +174,8 @@ void Response::initResponsePages()
     errors["403"] = "resources/errors/403.html";
     errors["404"] = "resources/errors/404.html";
     errors["405"] = "resources/errors/405.html";
+    errors["413"] = "resources/errors/413.html";
+    errors["500"] = "resources/errors/500.html";
 }
 
 Response::Response()
@@ -197,18 +199,25 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
 {
     this->request = request;
     Location *location = getLocation(locations);
-    if (request->getMethod() == "GET")
-        responseGet(location);
-    else if (request->getMethod() == "POST")
-        responsePost(location);
-    else if (request->getMethod() == "DELETE")
-        responseDelete(location);
+    if (BUFFER_SIZE < 2000)
+        responseError("500", getErrorPage("500"));
     else
     {
-        responseError("405", getErrorPage("405"));
-        setHeader("Content-Type", getMIME());
-        setHeader("Content-Length", getFileSize());
-        setHeader("Connection", "close");
+        if (!location->getRedirection().empty())
+            responseRedirect(location);
+        else if (request->getMethod() == "GET")
+            responseGet(location);
+        else if (request->getMethod() == "POST")
+            responsePost(location);
+        else if (request->getMethod() == "DELETE")
+            responseDelete(location);
+        else
+        {
+            responseError("405", getErrorPage("405"));
+            setHeader("Content-Type", getMIME());
+            setHeader("Content-Length", getFileSize());
+            setHeader("Connection", "close");
+        }
     }
     return (getHeaders());
 }
@@ -322,6 +331,13 @@ void    Response::checkOtherPreferences(Location *location)
     // }
     // else
     //     std::cout << "Kek" << std::endl;
+}
+
+void    Response::responseRedirect(Location *location)
+{
+    setCode("307");
+    std::cout << location->getRedirection() << std::endl;; 
+    setHeader("Location", location->getRedirection());
 }
 
 void    Response::responseGet(Location* location)
