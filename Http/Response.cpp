@@ -309,7 +309,8 @@ void    Response::checkOtherPreferences(Location *location)
 {
     if (location != NULL)
     location->getAllowMethods();
-    if (location->getAutoindex().compare("on"))
+    std::cout << location->getAutoindex() << std::endl;
+    if (location->getAutoindex() == "on")
         autoIndexOn = true;
     else
         autoIndexOn = false;
@@ -349,26 +350,29 @@ void    Response::responseGet(Location* location)
         responseError("405", getErrorPage("405"));
     else
     {
-        openFile(fileName);
-        if (reader.fail())
+        if (autoIndexOn && request->getURI()[request->getURI().length() - 1] == '/')
+            getFolders(location); //TODO: autoindex
+        else
         {
-            if (autoIndexOn)
-                getFolders(); //TODO: autoindex
-            else if (!access(fileName.c_str(), F_OK))
+            openFile(fileName);
+            if (reader.fail())
             {
-                std::cerr << "Permission denied" << std::endl;
-                responseError("403", getErrorPage("403"));
+                if (!access(fileName.c_str(), F_OK))
+                {
+                    std::cerr << "Permission denied" << std::endl;
+                    responseError("403", getErrorPage("403"));
+                }
+                else
+                {
+                    std::cerr << "File not found" << std::endl;
+                    responseError("404", getErrorPage("404"));
+                }
             }
             else
             {
-                std::cerr << "File not found" << std::endl;
-                responseError("404", getErrorPage("404"));
+                setCode("200");
+                setStatus(statusCodes[200]);
             }
-        }
-        else
-        {
-            setCode("200");
-            setStatus(statusCodes[200]);
         }
     }
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
@@ -413,15 +417,6 @@ void    Response::responsePost(Location * location)
                 setCode("200");
                 setStatus(statusCodes[200]);
             }
-            //if checkCGI()
-            //  runCGI(); //TODO: здесь CGI
-            //else 
-            // {
-            // responseGet(location);
-            //     return;
-            // }
-            // std::cout << request->toString() << std::endl; //debug 
-            // std::cout << postContentType << std::endl << std::endl;
         }
         else if (postContentType.substr(0, 19) == "multipart/form-data")
         {
@@ -486,7 +481,7 @@ void    Response::responseError(std::string code, std::string path)
 {
     setCode(code);
     setStatus(statusCodes[atoi(code.c_str())]);
-    setHeader("Connection", "keep-alive"); //TODO: ???
+    setHeader("Connection", "keep-alive");
     openFile(path);
     if (reader.fail())
     {
@@ -494,9 +489,102 @@ void    Response::responseError(std::string code, std::string path)
     }
 }
 
-void    Response::getFolders()
+void    Response::getFolders(Location* location)
 {
-    std::string html;
+    std::string route = location->getPath();
+    std::string uri = request->getURI();
+    std::string path = location->getRoot() + uri.substr(1);
+    std::string files = "";
+    std::string directories = "";
+    std::string fullPath;
+    DIR* dir;
+    struct dirent* diren;
+    struct stat buf;
+
+    // std::cout << "ROUTE: " << route << std::endl;
+    // std::cout << "URI: " << uri << std::endl;
+    // std::cout << "PATH: " << path << std::endl;
+    // std::cout << location->getRoot() << std::endl;
+    if (route != uri)
+    {
+        size_t i = uri.length() - 2;
+        while(i > 0 && uri[i] != '/')
+            i--;
+        directories += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
+		directories += uri.substr(0, i + 1);
+        std::cout << uri.substr(0, i+ 1) << std::endl;
+		directories += "\" style=\"display: inline-block;width: 70%;\">..</a></div>";
+    }
+
+    dir = opendir(path.c_str());
+                    std::cout << "HELLO1" << std::endl;
+                    std::cout << errno << std::endl;
+                    std::cout << path.c_str() << std::endl;
+    if (dir)
+    {
+                    std::cout << "HELLO2" << std::endl;
+        diren = readdir(dir);
+                    std::cout << "HELLO" << std::endl;
+        while(diren)
+        {
+                    std::cout << "HELLO" << std::endl;
+            if (diren->d_name[0] != '.')
+            {
+                fullPath = path + diren->d_name;
+                std::cout << "FULL PATH: " << fullPath << std::endl;
+                if (!stat(fullPath.c_str(), &buf))
+                {
+                    std::cout << "HELLO" << std::endl;
+                    if (S_ISDIR(buf.st_mode))
+                    {
+						directories += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
+						directories += uri + diren->d_name + "/";
+						directories += "\" style=\"display: inline-block;width: 70%;\">" + std::string(diren->d_name) + "/";
+						directories += "</a>";
+						directories += "<span>-</span></div>";
+                    }
+                    else
+                    {
+						files += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
+						files += uri + diren->d_name;
+						files += "\" style=\"display: inline-block;width: 70%;\">" + std::string(diren->d_name);
+						files += "</a>";
+						files += "<span>" + std::to_string(buf.st_size) + "</span></div>";
+                    }
+                }
+            }
+            diren = readdir(dir);
+        }
+        closedir(dir);
+    }
+    else
+    {
+        if (errno == EACCES || errno == ENOTDIR)
+            responseError("403", getErrorPage("403"));
+        else if (errno == ENOENT)
+            responseError("404", getErrorPage("404"));
+        else
+            responseError("500", getErrorPage("500"));
+    }
+
+
+
+    ofstream o;
+    o.open("resources/tmpOut", std::ios::out | std::ios::trunc);
+    o.write(directories.c_str(), directories.length());
+    o.write(files.c_str(), files.length());
+    o.close();
+    setCode("200");
+    setStatus(statusCodes[200]);
+    openFile("resources/tmpOut");
+    if (reader.fail())
+    {
+        openFile(getErrorPage("404"));
+    }
+    // setHeader("Content-Type", getMIME());
+    // setHeader("Content-Length", getFileSize());
+    // setHeader("Connection", "close");
+
     
 }
 

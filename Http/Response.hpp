@@ -12,6 +12,8 @@
 # include <fstream>
 # include <vector>
 #include <algorithm>
+# include <dirent.h>
+# include <sys/stat.h>
 # include "../Server/Server.hpp"
 # include "../Cgi/Cgi.hpp"
 # include "Request.hpp"
@@ -53,7 +55,7 @@ private:
     void        initStatusCodes();
     void        initMIMETypes();
     void        initResponsePages();
-    void        getFolders();
+    void        getFolders(Location* location);
 
     Location    *getLocation(std::vector<Location> &locations);
     std::string getFileName(Location *location);
