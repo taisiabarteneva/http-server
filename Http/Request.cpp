@@ -69,7 +69,7 @@ void Request::processBody()
 void    Request::processPost()
 {
     std::string content = getHeaderValue("Content-Type");
-    if (content.substr(0, content.find(';')) == "multipart/form-data")
+    if (content.substr(0, content.find(';')) == "multipart/form-data" && )
     {
         multiBoundary = content.substr(content.find(' ') + 1, content.length());
         multiBoundary.erase(0, multiBoundary.find_first_not_of('-', multiBoundary.find('=') + 1));
@@ -362,4 +362,9 @@ void Request::setLocation(Location* location)
 Location *Request::getLocation()
 {
     return location;
+}
+
+size_t  Request::getTotalBytesRead()
+{
+    return totalBytesRead;
 }

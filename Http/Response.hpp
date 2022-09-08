@@ -53,6 +53,7 @@ private:
     void        initStatusCodes();
     void        initMIMETypes();
     void        initResponsePages();
+    void        getFolders();
 
     Location    *getLocation(std::vector<Location> &locations);
     std::string getFileName(Location *location);

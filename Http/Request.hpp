@@ -71,6 +71,7 @@ public:
     void processRequest();
     void setBytesRead(int bytes);
     int getBytesRead() const; //TODO: debug purpose
+    size_t  getTotalBytesRead();
     char *getBuffer();
     bool isRead();
     bool isBodyPresent();

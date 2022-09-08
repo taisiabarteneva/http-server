@@ -201,6 +201,8 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
     Location *location = getLocation(locations);
     if (BUFFER_SIZE < 2000)
         responseError("500", getErrorPage("500"));
+    else if (request->getTotalBytesRead() > location->getClientMaxBodySize())
+        responseError("413", getErrorPage("413"));
     else
     {
         if (!location->getRedirection().empty())
@@ -350,9 +352,9 @@ void    Response::responseGet(Location* location)
         openFile(fileName);
         if (reader.fail())
         {
-            // if (autoIndexOn)
-            //     checkFolder(); //TODO: autoindex
-            if (!access(fileName.c_str(), F_OK))
+            if (autoIndexOn)
+                getFolders(); //TODO: autoindex
+            else if (!access(fileName.c_str(), F_OK))
             {
                 std::cerr << "Permission denied" << std::endl;
                 responseError("403", getErrorPage("403"));
@@ -372,7 +374,7 @@ void    Response::responseGet(Location* location)
     setHeader("Content-Type", getMIME()); // TODO: подготовить файл
     setHeader("Content-Length", getFileSize());
     // setHeader("Transfer-Encoding", "chunked");//TODO
-    setHeader("Connection", "keep-alive"); //TODO: ???
+    setHeader("Connection", "keep-alive");
     setHeader("Accept-Ranges", "bytes");
 }
 
@@ -383,7 +385,6 @@ void    Response::responsePost(Location * location)
         responseError("405", getErrorPage("405"));
     else
     {
-
         std::string postContentType;
         //TODO: запихнуть в отдельный метод поиска в response; или нет
         postContentType = request->getHeaderValue("Content-Type");
@@ -491,6 +492,12 @@ void    Response::responseError(std::string code, std::string path)
     {
         openFile(getErrorPage(code));
     }
+}
+
+void    Response::getFolders()
+{
+    std::string html;
+    
 }
 
 void Response::recieveDataFromFile()
