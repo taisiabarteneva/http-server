@@ -52,8 +52,8 @@ public:
 
     Server              createNewServer(string ip_port, vector<Location> locations);
     Location            createNewLocation(map<string, string>& config);
-	vector<Location>    getAllLocations();
-	vector<Server>      getAllServers();
+	vector<Location>&    getAllLocations();
+	vector<Server>&      getAllServers();
 
 
 private:

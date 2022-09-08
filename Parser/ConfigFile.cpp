@@ -283,7 +283,7 @@ bool ConfigFile::checkLocationClosingBracket(ConfigFlags &loc_flags, vector<stri
     exit(EXIT_FAILURE);
 }
 
-Server ConfigFile::createNewServer(string ip_port, vector<Location> locations) { 
+Server ConfigFile::createNewServer(string ip_port, vector<Location> locations) {
 
 	Server server(ip_port, locations);
 	return server;
@@ -539,11 +539,11 @@ void    ConfigFile::parsingLocation(vector<string>& words, ConfigFlags& loc_util
     }
 }
 
-vector<Location>    ConfigFile::getAllLocations() {
+vector<Location>&    ConfigFile::getAllLocations() {
 	return all_locations;
 }
 
-vector<Server>  ConfigFile::getAllServers() {
+vector<Server>&  ConfigFile::getAllServers() {
 	return all_servers;
 }
 
