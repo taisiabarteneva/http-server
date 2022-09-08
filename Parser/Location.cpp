@@ -47,7 +47,7 @@ Location::Location(map<string, string>& loc) {
         ++it_loc;
     }
 
-	printLocationInfo();
+//	printLocationInfo();
 }
 
 Location::Location(const Location& location) {
@@ -69,9 +69,7 @@ Location & Location::operator=(const Location& location) {
         allow_methods = location.allow_methods;
         errors = location.errors;
         authentication = location.authentication;
-
-//        this_location = location.this_location;
-
+		redirection = location.redirection;
     }
     return (*this);
 }
