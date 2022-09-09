@@ -22,7 +22,6 @@ class Http
         int recv_msg(int conn, char* buffer, size_t size);
         int send_msg(int conn, const char *buffer, size_t size);
         int makeRequest(int fd, Request *request);
-        //config file;??
 
     public:
         Http();

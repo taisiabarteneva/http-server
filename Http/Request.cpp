@@ -332,7 +332,7 @@ int Request::getBytesRead() const
 
 bool Request::isRead()
 {
-    return (headerRead && startLineRead && (!this->bodyPresent || (this->bodyRead && this->bodyPresent))); //TODO: проверить
+    return (headerRead && startLineRead && (!this->bodyPresent || (this->bodyRead && this->bodyPresent)));
 }
 
 bool Request::isBodyPresent()

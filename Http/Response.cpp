@@ -312,26 +312,16 @@ void    Response::checkOtherPreferences(Location *location)
         autoIndexOn = true;
     else
         autoIndexOn = false;
-    // std::cout << "AUTOINDEX: " << location->getAutoindex() << std::endl;
-    // for (std::string i : location->getErrors())
-    // {
-    //     i = location->getRoot() + i;
-    //     std::cout << i << std::endl;
-    // }
-    // location->printLocationInfo();
-    // map<string, string> i = location->getErrors(); // segfault
-    // // std::cout << "SIZE: " << i.size() << std::endl;
-    //     std::cout << "ERRORS GOT" << std::endl;
-    // if (i.size() != 0)
-    // {
-    // std::map<std::string, std::string>::iterator it = location->getErrors().begin();
-    //     std::cout << "ERRORS GOT" << std::endl;
-    // std::map<std::string, std::string>::iterator it1 = location->getErrors().end();
-    //     std::cout << "ERRORS GOT" << std::endl;
-    //     errors.insert(location->getErrors().begin(), location->getErrors().end());
-    // }
-    // else
-    //     std::cout << "Kek" << std::endl;
+    location->printLocationInfo();
+    std::map<std::string, std::string> tmp = location->getErrors();
+    for (std::map<std::string, std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
+    {
+        
+        if (access((*it).second.c_str(), R_OK) == 0)
+            errors[(*it).first] = (*it).second;
+        else
+            errors[(*it).first] = "resources/errors/500.html";
+    }
 }
 
 void    Response::responseRedirect(Location *location)
