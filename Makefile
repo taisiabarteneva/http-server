@@ -8,7 +8,9 @@ OBJS_DIR = obj
 
 OBJS = $(patsubst %.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
-CFLAGS = -g # -fsanitize=address -Wall -Wextra -Werror
+CFLAGS = -g -MMD -MP # -fsanitize=address -Wall -Wextra -Werror
+
+DEP = $(patsubst %.o,%.d,$(OBJS))
 
 all: $(NAME)
 
@@ -24,6 +26,7 @@ $(OBJS_DIR):
 
 clean:
 	$(RM) -rv $(OBJS) $(OBJS_DIR)
+	$(RM) $(DEP)
 
 fclean: clean
 	$(RM) $(NAME)
@@ -32,3 +35,5 @@ re: fclean all
 
 
 .PHONY: all clean fclean re
+
+-include $(DEP)

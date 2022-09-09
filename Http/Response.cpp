@@ -273,7 +273,6 @@ Location    *Response::getLocation(std::vector<Location> &locations)
             ret = &(*it);
         }
     }
-    // ret->printLocationInfo();
     fileName = getFileName(ret);
     checkOtherPreferences(ret);
     return ret;
@@ -309,7 +308,6 @@ void    Response::checkOtherPreferences(Location *location)
 {
     if (location != NULL)
     location->getAllowMethods();
-    std::cout << location->getAutoindex() << std::endl;
     if (location->getAutoindex() == "on")
         autoIndexOn = true;
     else
@@ -339,34 +337,28 @@ void    Response::checkOtherPreferences(Location *location)
 void    Response::responseRedirect(Location *location)
 {
     setCode("307");
-    std::cout << location->getRedirection() << std::endl;; 
     setHeader("Location", location->getRedirection());
 }
 
 void    Response::responseGet(Location* location)
 {
+    autoFilePresent = true;
     vector<string> methods = location->getAllowMethods();
     if (std::find(methods.begin(), methods.end(), "GET") == methods.end())
         responseError("405", getErrorPage("405"));
     else
     {
         if (autoIndexOn && request->getURI()[request->getURI().length() - 1] == '/')
-            getFolders(location); //TODO: autoindex
-        else
+            getFolders(location);
+        if (autoFilePresent)
         {
             openFile(fileName);
             if (reader.fail())
             {
                 if (!access(fileName.c_str(), F_OK))
-                {
-                    std::cerr << "Permission denied" << std::endl;
                     responseError("403", getErrorPage("403"));
-                }
                 else
-                {
-                    std::cerr << "File not found" << std::endl;
                     responseError("404", getErrorPage("404"));
-                }
             }
             else
             {
@@ -379,7 +371,7 @@ void    Response::responseGet(Location* location)
     setHeader("Content-Length", getFileSize());
     // setHeader("Transfer-Encoding", "chunked");//TODO
     setHeader("Connection", "keep-alive");
-    setHeader("Accept-Ranges", "bytes");
+    // setHeader("Accept-Ranges", "bytes");
 }
 
 void    Response::responsePost(Location * location)
@@ -392,25 +384,17 @@ void    Response::responsePost(Location * location)
         std::string postContentType;
         //TODO: запихнуть в отдельный метод поиска в response; или нет
         postContentType = request->getHeaderValue("Content-Type");
-        std::cout << "-----------------THIS IS CONTENT TYPE-----------" << std::endl;
         if (!postContentType.compare("application/x-www-form-urlencoded"))// TODO: проверить скрипт или нет
         {
-            CGI cgi(request, location); // TODO: перенести в runCGI
-            cgi.start(); // TODO: перенести в runCGI
-            std::cout << postContentType << std::endl << std::endl;
+            CGI cgi(request, location);
+            cgi.start();
             openFile("resources/cgi.serv");
             if (reader.fail())
             {
                 if (!access(fileName.c_str(), F_OK))
-                {
-                    std::cerr << "Permission denied" << std::endl;
                     responseError("403", getErrorPage("403"));
-                }
                 else
-                {
-                    std::cerr << "File not found" << std::endl;
                     responseError("404", getErrorPage("404"));
-                }
             }
             else
             {
@@ -420,20 +404,13 @@ void    Response::responsePost(Location * location)
         }
         else if (postContentType.substr(0, 19) == "multipart/form-data")
         {
-            std::cout << postContentType << std::endl << std::endl;
             openFile("resources/success.html");
             if (reader.fail())
             {
                 if (!access(fileName.c_str(), F_OK))
-                {
-                    std::cerr << "Permission denied" << std::endl;
                     responseError("403", getErrorPage("403"));
-                }
                 else
-                {
-                    std::cerr << "File not found" << std::endl;
                     responseError("404", getErrorPage("404"));
-                }
             }
             else
             {
@@ -458,15 +435,9 @@ void    Response::responseDelete(Location * location)
         if (reader.fail())
         {
             if (!access(fileName.c_str(), F_OK))
-            {
-                std::cerr << "Permission denied" << std::endl;
                 responseError("403", getErrorPage("403"));
-            }
             else
-            {
-                std::cerr << "File not found" << std::endl;
                 responseError("404", getErrorPage("404"));
-            }
         }
         else
         {
@@ -493,7 +464,7 @@ void    Response::getFolders(Location* location)
 {
     std::string route = location->getPath();
     std::string uri = request->getURI();
-    std::string path = location->getRoot() + uri.substr(1);
+    std::string path = location->getRoot() + uri.substr(route.length());
     std::string files = "";
     std::string directories = "";
     std::string fullPath;
@@ -501,10 +472,7 @@ void    Response::getFolders(Location* location)
     struct dirent* diren;
     struct stat buf;
 
-    // std::cout << "ROUTE: " << route << std::endl;
-    // std::cout << "URI: " << uri << std::endl;
-    // std::cout << "PATH: " << path << std::endl;
-    // std::cout << location->getRoot() << std::endl;
+    autoFilePresent = false;
     if (route != uri)
     {
         size_t i = uri.length() - 2;
@@ -512,29 +480,25 @@ void    Response::getFolders(Location* location)
             i--;
         directories += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
 		directories += uri.substr(0, i + 1);
-        std::cout << uri.substr(0, i+ 1) << std::endl;
 		directories += "\" style=\"display: inline-block;width: 70%;\">..</a></div>";
     }
 
     dir = opendir(path.c_str());
-                    std::cout << "HELLO1" << std::endl;
-                    std::cout << errno << std::endl;
-                    std::cout << path.c_str() << std::endl;
     if (dir)
     {
-                    std::cout << "HELLO2" << std::endl;
         diren = readdir(dir);
-                    std::cout << "HELLO" << std::endl;
         while(diren)
         {
-                    std::cout << "HELLO" << std::endl;
             if (diren->d_name[0] != '.')
             {
                 fullPath = path + diren->d_name;
-                std::cout << "FULL PATH: " << fullPath << std::endl;
+                if (fullPath == fileName && !location->getIndex().empty())
+                {
+                    autoFilePresent = true;
+                    return ;
+                }
                 if (!stat(fullPath.c_str(), &buf))
                 {
-                    std::cout << "HELLO" << std::endl;
                     if (S_ISDIR(buf.st_mode))
                     {
 						directories += "<div style=\"font-size: 18px;margin-bottom: 5px;\"><a href=\"";
@@ -566,26 +530,18 @@ void    Response::getFolders(Location* location)
         else
             responseError("500", getErrorPage("500"));
     }
-
-
-
     ofstream o;
-    o.open("resources/tmpOut", std::ios::out | std::ios::trunc);
+    o.open("resources/tmpOut.html", std::ios::out | std::ios::trunc);
     o.write(directories.c_str(), directories.length());
     o.write(files.c_str(), files.length());
     o.close();
     setCode("200");
     setStatus(statusCodes[200]);
-    openFile("resources/tmpOut");
+    openFile("resources/tmpOut.html");
     if (reader.fail())
     {
         openFile(getErrorPage("404"));
-    }
-    // setHeader("Content-Type", getMIME());
-    // setHeader("Content-Length", getFileSize());
-    // setHeader("Connection", "close");
-
-    
+    }    
 }
 
 void Response::recieveDataFromFile()
@@ -722,7 +678,7 @@ std::string Response::getHeaderValue(std::string key)
 std::string Response::getMIME() const
 {
     std::string key = fileType;
-    std::string mime;
+    std::string mime = "text/plain; charset=utf-8";
     for (std::map<std::string, std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); it++)
     {
         if (fileType == it->first)

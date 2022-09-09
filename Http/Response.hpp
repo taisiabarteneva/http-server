@@ -42,6 +42,7 @@ private:
     std::ostringstream stream;
     bool autoIndexOn;
     std::string fileName;
+    bool autoFilePresent;
 
 
     void        responseGet(Location* location);
