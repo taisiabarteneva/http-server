@@ -11,39 +11,42 @@ int Http::recv_msg(int conn, char* buffer, size_t size)
     return recv(conn, buffer, (int)size, 0);
 }
 
-void Http::makeRequest(int fd, Request *request)
+int Http::makeRequest(int fd, Request *request)
 {
     request->setBytesRead(recv_msg(fd, request->getBuffer(), BUFFER_SIZE));
+    if (request->getBytesRead() == -1)
+        return (-1);
     request->processRequest();
-    if (request->isBodyPresent())
-    {
-        // записать на сервак. Учитывай что в этот момент часть тела скорее всего будет считана. Размер bytesRead, буффер buffer.
-    }
-    //где то здесь идёт запись в файл в том случае, если нужный хедер присутствует и тело есть
+    return (0);
 }
 
-bool Http::acceptRequest(int fd, Server * serv)
+int Http::acceptRequest(int fd, Server * serv)
 {
     if (connections.find(fd) == connections.end())
         connections[fd] = std::make_pair(new Request, new Response);
-    makeRequest(fd, connections[fd].first);
-    return connections[fd].first->isRead();
+    if (makeRequest(fd, connections[fd].first) == -1)
+        return (-1);
+    bool ret = connections[fd].first->isRead();
+    return ret ? 1 : 0;
+
 }
 
-bool Http::getResponse(int fd, Server * serv)
+int Http::getResponse(int fd, Server * serv)
 {
     bool done;
     Response* resp = connections[fd].second;
     if (resp->isFirstResponse())
     {
         std::string head = resp->prepareResponse(serv->getLocations(), connections[fd].first);
-        send_msg(fd, head.c_str(), head.length());
+        if (send_msg(fd, head.c_str(), head.length()) == -1)
+            return -1;
     }
     else
     {
         char* buffer = resp->getBody();
         int size = resp->getBodySize();
-        send_msg(fd, buffer, size);
+        if (send_msg(fd, buffer, size) == -1)
+            return -1;
     }
     done = resp->isRead();
     if (done)
@@ -52,7 +55,7 @@ bool Http::getResponse(int fd, Server * serv)
         connections[fd].first->resetData();
         connections.erase(fd);
     }
-    return done;
+    return done ? 1 : 0;
 }
 
 Http::Http()

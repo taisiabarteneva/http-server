@@ -147,14 +147,13 @@ void Core::handleExistingConnection(struct pollfd & connection, int i, Server* s
 
 	if (connection.revents & POLLIN)
 	{
-		// std::cout << "Here\n";
+		/* 1 == прочитал, 0 == в процессе чтения, -1 == ошибка */
 		if (http.acceptRequest(connection.fd, serv))
             connection.events = POLLOUT;
 	}
 	else if (connection.revents & POLLOUT)
 	{
-		// std::cout << "Here\n";
-
+		/* 1 == записал, 0 == в процессе записи, -1 == ошибка */
 		if (http.getResponse(connection.fd, serv))
 		{
 			closeConnection(connection, i);

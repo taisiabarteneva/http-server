@@ -73,12 +73,10 @@ void    Request::processPost()
     {
         multiBoundary = content.substr(content.find(' ') + 1, content.length());
         multiBoundary.erase(0, multiBoundary.find_first_not_of('-', multiBoundary.find('=') + 1));
-        // std::cout << "BOUNDARY: " << multiBoundary << std::endl;
         multiBodyPosition = 0;
         multiNewRead = true;
         for (int i = 0; i < bytesRead; i++)
         {
-            // std::cout << buffer[i];
             if (buffer[i] == '-')
                 multiCheckBoundary(i);
         }
@@ -90,7 +88,6 @@ void    Request::processPost()
             writeInFile(multiBodyPosition, multiBodyPosition + kostylBoundryPos, multiFileName);
         else
             writeInFile(multiBodyPosition, bytesRead, multiFileName);
-        // std::cout << buffer << std::endl;
     }
 }
 
