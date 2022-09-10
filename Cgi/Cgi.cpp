@@ -128,11 +128,10 @@ void    CGI::prepareEnv(void)
     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
     {
         std::string tmp = it->first;
-        for (char & c : tmp) 
+        for (int i = 0; i < tmp.length(); i++) 
         {
-            c = std::toupper(c, std::locale());
+            tmp[i] = std::toupper(tmp[i], std::locale());
         }
-        std::cout << "tmp is:" << tmp << std::endl;
         tmp += "=";
         tmp += it->second;
         envs.push_back(tmp);
