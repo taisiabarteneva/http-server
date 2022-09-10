@@ -97,10 +97,10 @@ void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
         }
     }
     env.push_back(envVar);
-    for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
-    {
-        std::cout << *it << std::endl;
-    }
+    // for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
+    // {
+    //     std::cout << *it << std::endl;
+    // }
 }
 
 void up(char & c)
@@ -136,7 +136,7 @@ void    CGI::prepareEnv(void)
         {
             c = std::toupper(c, std::locale());
         }
-        std::cout << "tmp is:" << tmp << std::endl;
+        // std::cout << "tmp is:" << tmp << std::endl;
         tmp += "=";
         tmp += it->second;
         envs.push_back(tmp);

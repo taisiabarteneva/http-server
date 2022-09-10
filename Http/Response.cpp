@@ -312,7 +312,7 @@ void    Response::checkOtherPreferences(Location *location)
         autoIndexOn = true;
     else
         autoIndexOn = false;
-    location->printLocationInfo();
+
     std::map<std::string, std::string> tmp = location->getErrors();
     for (std::map<std::string, std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
     {
@@ -375,11 +375,56 @@ void    Response::responsePost(Location * location)
         {
             CGI cgi(request, location);
             cgi.start();
-            openFile("resources/cgi.serv");
-            std::string tmp;
-            std::cout << "HERE" << std::endl;
-            std::getline(reader, tmp);
-            std::cout << tmp << std::endl;
+
+            reader.close();
+            reader.clear();
+            reader.open("resources/cgi.serv", std::ios::in | std::ios::binary | std::ios::ate);
+            if (reader.fail())
+                responseError("404", getErrorPage("404"));
+            int fileSize = reader.tellg();
+            char buffer[fileSize];
+            reader.seekg(0);
+            reader.read(buffer, fileSize);
+            reader.clear();
+            reader.close();
+            std::string tmp = buffer;
+            size_t isHeaders = tmp.find("\r\n\r\n");
+            std::string tmpFile = tmp.substr(isHeaders + 4, tmp.length());
+            if (isHeaders == std::string::npos)
+                openFile("resources/cgi.serv");
+            else
+            {
+                std::cout << tmp << std::endl;
+                size_t endOfLine;
+                std::string header;
+                std::string tmp_key;
+                std::string tmp_value;
+                std::pair<std::string, std::string> vec_header;
+                std::string::size_type pos;
+                while (tmp.compare("\r\n"))
+                {
+                    endOfLine = tmp.find("\r\n");
+                    header = tmp.substr(0, endOfLine);
+                    pos = header.find(": ");
+                    if (pos == std::string::npos)
+                        break ;
+                    tmp_key = header.substr(0, pos);
+                    tmp_value = header.substr(pos + 2, header.size());
+                    setHeader(tmp_key, tmp_value);
+                    vec_header = std::make_pair(tmp_key, tmp_value);//todo: delete
+                    headers.insert(vec_header);//todo: delete
+                    tmp.erase(0, endOfLine + 2);
+                }
+                for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+                    std::cout << (*it).first << ": " << (*it).second << std::endl;
+                ofstream o;
+                o.open("resources/cgi.serv", std::ios::out | std::ios::trunc);
+                std::cout << "TMPFILE:\n" << tmpFile << std::endl;
+                o.write(tmpFile.data(), tmpFile.length());
+                o.close();
+                openFile("resources/cgi.serv");
+            }
+
             if (reader.fail())
             {
                 if (!access(fileName.c_str(), F_OK))
