@@ -357,11 +357,9 @@ void    Response::responseGet(Location* location)
             }
         }
     }
-    setHeader("Content-Type", getMIME()); // TODO: подготовить файл
+    setHeader("Content-Type", getMIME());
     setHeader("Content-Length", getFileSize());
-    // setHeader("Transfer-Encoding", "chunked");//TODO
     setHeader("Connection", "keep-alive");
-    // setHeader("Accept-Ranges", "bytes");
 }
 
 void    Response::responsePost(Location * location)
@@ -372,13 +370,16 @@ void    Response::responsePost(Location * location)
     else
     {
         std::string postContentType;
-        //TODO: запихнуть в отдельный метод поиска в response; или нет
         postContentType = request->getHeaderValue("Content-Type");
-        if (!postContentType.compare("application/x-www-form-urlencoded"))// TODO: проверить скрипт или нет
+        if (!postContentType.compare("application/x-www-form-urlencoded"))
         {
             CGI cgi(request, location);
             cgi.start();
             openFile("resources/cgi.serv");
+            std::string tmp;
+            std::cout << "HERE" << std::endl;
+            std::getline(reader, tmp);
+            std::cout << tmp << std::endl;
             if (reader.fail())
             {
                 if (!access(fileName.c_str(), F_OK))
@@ -539,7 +540,7 @@ void Response::recieveDataFromFile()
     reader.read(body, BUFFER_SIZE);
     if (reader.bad())
     {
-        std::cerr << "File reading fail" << std::endl; // TODO:??
+        std::cerr << "File reading fail" << std::endl;
     }
     bytes = reader.gcount();
 }
@@ -555,7 +556,7 @@ void    Response::openFile(std::string file)
         std::cerr << "Open file failure" << std::endl;
         return ; 
     }
-    setFileSize(reader.tellg()); //TODO:: а что с большим файлом?
+    setFileSize(reader.tellg());
     reader.seekg(0);
     setFileType(file.substr(file.find(".") + 1));
     reader.clear();
@@ -636,9 +637,8 @@ void    Response::setHeader(std::string key, std::string value)
     this->headers.insert(std::make_pair(key, value));
 }
 
-void    Response::setFileSize(int size) //TODO:: а что с большим файлом?
+void    Response::setFileSize(int size)
 {
-    // TODO:: если файл большой, готовим заголовок Transfer-Encoding: chunked
     stream << size;
     fileSize = stream.str();
     stream.str("");
@@ -668,7 +668,7 @@ std::string Response::getHeaderValue(std::string key)
 std::string Response::getMIME() const
 {
     std::string key = fileType;
-    std::string mime = "text/plain; charset=utf-8";
+    std::string mime = "text/html; charset=utf-8";
     for (std::map<std::string, std::string>::const_iterator it = mimeTypes.begin(); it != mimeTypes.end(); it++)
     {
         if (fileType == it->first)

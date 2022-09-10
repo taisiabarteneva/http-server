@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 	Core 	core(argv[1]);
 
 	// core.printInfo();
-	std::cout << "Desпыsbudsвdddddsssвssfssfыssdfsssssssfsssssshsssssssdsssssdsdsswsdsssssssssssssddsssssdsddgssssssdddsdasdfssssssssdssfsdddпfdвssddыыjsdddsdddgd\n" << std::endl;
+	std::cout << "Desпыsbudsвdddddsssвssfssfыssdfsssssssfsssssshsssssssdssssssdsdsswsdsssssssssssssddsssssdsddgssssssdddsdasdfssssssssdssfsdddпfdвssddыыjsdddsdddgd\n" << std::endl;
 	core.setUpWebServers();
 	core.runWebServers();
 }

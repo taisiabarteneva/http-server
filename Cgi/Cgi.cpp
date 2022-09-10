@@ -97,6 +97,10 @@ void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
         }
     }
     env.push_back(envVar);
+    for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
+    {
+        std::cout << *it << std::endl;
+    }
 }
 
 

@@ -40,7 +40,6 @@ void Request::recieveHeaders(std::string& message)
         headers.insert(vec_header);
         message.erase(0, endOfLine + 2);
     }
-    // std::cout << getBuffer() << std::endl; //TODO: debug
 }
 
 void Request::processHeader()
@@ -55,7 +54,7 @@ void Request::processHeader()
         bodyRead = true;
     recieveHeaders(message);
     len += 4;
-    bytesLeft = totalBytesRead - startLineSize - len; // записать сколько считали (осталось передать)
+    bytesLeft = totalBytesRead - startLineSize - len;
     if (bytesLeft != 0)
         bodyPresent = true;
 }
@@ -157,7 +156,6 @@ void    Request::multiGetHeaders(std::string buf, int pos)
 
 void    Request::multiCheckBoundary(int &pos)
 {
-    // std::cout << pos << std::endl;
     int tmpPos = pos;
     while (buffer[pos] == '-')
         pos++;
@@ -179,7 +177,6 @@ void    Request::multiCheckBoundary(int &pos)
     else if (pos + multiBoundary.length() <= BUFFER_SIZE)
     {
         std::string buf = &buffer[pos];
-        // std::cout << buf << std::endl;
         if (multiCheckString(buf))
         {
             if (multiNewRead == false)
@@ -191,8 +188,6 @@ void    Request::multiCheckBoundary(int &pos)
             }
             multiNewRead = false;
             multiGetHeaders(buf, pos);
-
-            // writeInFile(pos, fileName);//TODO write in file
         }
 
     }
@@ -274,7 +269,7 @@ Request::Method Request::stringToMethod(std::string method)
     return FAIL;
 }
 
-std::string Request::toString() //TODO:: DEBUG
+std::string Request::toString()
 {
     std::string ret = getStartLineString();
     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
