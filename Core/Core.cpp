@@ -1,14 +1,12 @@
 #include "Core.hpp"
-#include "../Parser/ConfigFile.hpp"
 
 Core::Core(char *config)
 :   numSet(0)
 {
-    ConfigFile  cfg;
 	memset(activeSet, 0, sizeof(activeSet));
 
-    cfg.openConfigFile(config);
-    servers = cfg.getAllServers();
+    conf.openConfigFile(config);
+    servers = conf.getAllServers();
 }
 
 Core::Core(const Core & rhs) 

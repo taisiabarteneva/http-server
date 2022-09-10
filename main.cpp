@@ -1,6 +1,6 @@
 # define LOCALHOST "127.0.0.1"
 
-// # include "Core/Core.hpp"
+# include "Core/Core.hpp"
 # include "Http/Http.hpp"
 # include "Parser/ConfigFile.hpp"
 # include "Net/Net.hpp"

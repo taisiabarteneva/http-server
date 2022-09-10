@@ -1,6 +1,7 @@
 #ifndef     CGI_HPP
 # define    CGI_HPP
 
+# include   <algorithm>
 # include   <unistd.h>
 # include   <fcntl.h>
 # include   <string>

@@ -18,6 +18,7 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include "../Parser/Location.hpp"
+# include "../Parser/ConfigFile.hpp"
 # include "../Server/Server.hpp"
 # include "../Http/Http.hpp"
 
@@ -43,6 +44,7 @@ class Core
         char                    buf[BUF_LEN];
         std::vector<int>        vSocks;
         Http                    http;
+        ConfigFile              conf;
     
     public:
         Core(char* config);
