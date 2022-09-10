@@ -99,6 +99,10 @@ void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
     env.push_back(envVar);
 }
 
+void up(char & c)
+{
+    toupper(c);
+}
 
 void    CGI::prepareEnv(void) 
 {
@@ -110,9 +114,7 @@ void    CGI::prepareEnv(void)
         CGI scripts are given predefined environment variables that provide information about the web server as well as the client
     */
 
-    // toDo : getBuffer() handler, parse env variables
     parseEnvFromRequest(envs);
-
     /* relative path for the CGI script */
     envs.push_back("PATH_INFO=" + request->getURI());
     /* absolute path for the CGI script */
@@ -121,11 +123,21 @@ void    CGI::prepareEnv(void)
     // envs.push_back("QUERY_STRING=" + request);
     /* method used to make the request */
     envs.push_back("REQUEST_METHOD=" + request->getMethod());
-    /* data type of the content, used when the client is sending attached content to the server */
-    envs.push_back("CONTENT_TYPE=" + request->getHeaderValue("Content-Type"));
-    /* length of the query information that is available only for POST requests */
-    envs.push_back("CONTENT_LENGTH=" + request->getHeaderValue("Content-Length"));
     
+    std::map<std::string, std::string> headers = request->getHeaders();
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+    {
+        std::string tmp = it->first;
+        for (char & c : tmp) 
+        {
+            c = std::toupper(c, std::locale());
+        }
+        std::cout << "tmp is:" << tmp << std::endl;
+        tmp += "=";
+        tmp += it->second;
+        envs.push_back(tmp);
+    }
+
     env_len = envs.size() + 1;
     env = new char*[env_len];
     std::vector<std::string>::iterator it = envs.begin(); i = 0;

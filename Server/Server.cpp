@@ -99,6 +99,8 @@ void Server::createListenSocket(void)
 
 int Server::fillServerStruct(void)
 {
+    // std::cout << _locations[0].getServerName() << std::endl;
+
     if (parseAddress() != 0)
         return 1;
 	memset(&addr, 0, sizeof(addr));

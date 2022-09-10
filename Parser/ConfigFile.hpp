@@ -9,15 +9,14 @@
 # include <string>
 #include <list>
 #include <vector>
-
 #include "ConfigUtils.hpp"
 #include "Location.hpp"
-#include "../Core/Core.hpp"
+#include "../Server/Server.hpp"
+// #include "../Core/Core.hpp"
 
 using namespace std;
 
 class ConfigFile {
-
 public:
 
 	ConfigFile();
