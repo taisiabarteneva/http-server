@@ -26,7 +26,7 @@ Core::~Core() {}
 void Core::setUpWebServers(void)
 {
     std::cout << "Num of servers : " << servers.size() << std::endl;
-    for (int i = 0; i < servers.size(); i++)
+    for (int i = 0; i < (int)servers.size(); i++)
     {
         std::cout << "Setting up server at " << servers[i].getAddress() << std::endl;
         servers[i].setupServer();
@@ -145,13 +145,11 @@ void Core::handleExistingConnection(struct pollfd & connection, int i, Server* s
 
 	if (connection.revents & POLLIN)
 	{
-		/* 1 == прочитал, 0 == в процессе чтения, -1 == ошибка */
-		if (http.acceptRequest(connection.fd, serv))
+		if (http.acceptRequest(connection.fd))
             connection.events = POLLOUT;
 	}
 	else if (connection.revents & POLLOUT)
 	{
-		/* 1 == записал, 0 == в процессе записи, -1 == ошибка */
 		if (http.getResponse(connection.fd, serv))
 		{
 			closeConnection(connection, i);

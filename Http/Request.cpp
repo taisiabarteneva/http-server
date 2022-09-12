@@ -82,7 +82,7 @@ void    Request::processPost()
         if (multiBodyPosition != 0)
             multiNewFile = true;
         std::string kostyl = &buffer[multiBodyPosition];
-        int kostylBoundryPos = kostyl.find("\r\n--");
+        size_t kostylBoundryPos = kostyl.find("\r\n--");
         if (kostylBoundryPos != std::string::npos)
             writeInFile(multiBodyPosition, multiBodyPosition + kostylBoundryPos, multiFileName);
         else
@@ -92,8 +92,8 @@ void    Request::processPost()
 
 bool    Request::multiCheckString(std::string& str)
 {
-    int pos1 = str.find_first_not_of('-');
-    int pos2 = str.find("\r\n") - str.find_first_not_of('-');
+    size_t pos1 = str.find_first_not_of('-');
+    size_t pos2 = str.find("\r\n") - str.find_first_not_of('-');
     if (pos1 == std::string::npos)
         return false;
     if (str.substr(pos1, pos2) == multiBoundary)

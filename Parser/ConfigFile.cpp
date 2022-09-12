@@ -284,6 +284,7 @@ bool    ConfigFile::checkRedirection(ConfigFlags &flags, vector<string> &words, 
 }
 
 void ConfigFile::parsingConfigFile(const string &file) {
+	(void)file;
 	string file_str;
 	ConfigFlags utils_flags;
 	vector<string> str_words;

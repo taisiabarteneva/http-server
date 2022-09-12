@@ -27,7 +27,7 @@ class Http
         Http();
         ~Http();
 
-        int acceptRequest(int fd, Server * serv);
+        int acceptRequest(int fd);
         int getResponse(int fd, Server * serv);
 };
 

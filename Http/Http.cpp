@@ -20,7 +20,7 @@ int Http::makeRequest(int fd, Request *request)
     return (0);
 }
 
-int Http::acceptRequest(int fd, Server * serv)
+int Http::acceptRequest(int fd)
 {
     if (connections.find(fd) == connections.end())
         connections[fd] = std::make_pair(new Request, new Response);

@@ -1,14 +1,14 @@
 NAME = run
 
-VPATH = Http/ Net/ Core/ Parser/ Server/ Cgi/
+VPATH = Http/ Core/ Parser/ Server/ Cgi/
  
-SRCS = main.cpp Http.cpp Request.cpp Response.cpp Net.cpp Core.cpp ConfigFile.cpp Location.cpp Server.cpp Cgi.cpp
+SRCS = main.cpp Http.cpp Request.cpp Response.cpp Core.cpp ConfigFile.cpp Location.cpp Server.cpp Cgi.cpp
 
 OBJS_DIR = obj
 
 OBJS = $(patsubst %.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
-CFLAGS = -g -MMD -MP # -fsanitize=address -Wall -Wextra -Werror
+CFLAGS = -g -MMD -MP -fsanitize=address -Wall -Wextra -Werror
 
 DEP = $(patsubst %.o,%.d,$(OBJS))
 

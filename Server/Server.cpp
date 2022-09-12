@@ -154,9 +154,7 @@ void Server::createQueue(void)
 
 int Server::parseAddress()
 {
-    size_t i = 0, j = 0;
-
-    int pos = _address.find(":");
+    size_t pos = _address.find(":");
     if (pos == std::string::npos)
         return 1;
     if (pos >= 16)

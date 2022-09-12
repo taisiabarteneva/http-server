@@ -226,7 +226,7 @@ std::string Response::prepareResponse(std::vector<Location> locations, Request* 
 
 Location    *Response::getLocation(std::vector<Location> &locations)
 {
-    int pos;
+    size_t pos;
     int start;
     std::string currentLocationPath;
     std::string path = request->getURI();
@@ -386,14 +386,13 @@ void    Response::responsePost(Location * location)
             reader.read(buffer, fileSize);
             reader.clear();
             reader.close();
-            std::string tmp = buffer;
+            std::string tmp(buffer, fileSize);
             size_t isHeaders = tmp.find("\r\n\r\n");
             std::string tmpFile = tmp.substr(isHeaders + 4, tmp.length());
             if (isHeaders == std::string::npos)
                 openFile("resources/cgi.serv");
             else
             {
-                // std::cout << tmp << std::endl;
                 size_t endOfLine;
                 std::string header;
                 std::string tmp_key;
@@ -410,12 +409,8 @@ void    Response::responsePost(Location * location)
                     tmp_key = header.substr(0, pos);
                     tmp_value = header.substr(pos + 2, header.size());
                     setHeader(tmp_key, tmp_value);
-                    vec_header = std::make_pair(tmp_key, tmp_value);//todo: delete
-                    headers.insert(vec_header);//todo: delete
                     tmp.erase(0, endOfLine + 2);
                 }
-                // for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-                //     std::cout << (*it).first << ": " << (*it).second << std::endl;
                 ofstream o;
                 o.open("resources/cgi.serv", std::ios::out | std::ios::trunc);
                 // std::cout << "TMPFILE:\n" << tmpFile << std::endl;
