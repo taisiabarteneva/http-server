@@ -85,7 +85,6 @@ void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
 
     contentLen = atoi(request->getHeaderValue("Content-Length").c_str());
     body.erase(0, body.find_last_of("\r\n") + 1);  /* http-message body */
-    
     for (int i = 0; i < contentLen; i++)
     {
         if (body[i] != '&')
@@ -97,10 +96,10 @@ void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
         }
     }
     env.push_back(envVar);
-    // for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
-    // {
-    //     std::cout << *it << std::endl;
-    // }
+    for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
+    {
+        std::cout << *it << std::endl;
+    }
 }
 
 void up(char & c)
@@ -141,7 +140,8 @@ void    CGI::prepareEnv(void)
         tmp += it->second;
         envs.push_back(tmp);
     }
-
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+        std::cout << (*it).first << ": " << (*it).second << std::endl;
     env_len = envs.size() + 1;
     env = new char*[env_len];
     std::vector<std::string>::iterator it = envs.begin(); i = 0;
@@ -183,7 +183,7 @@ void    CGI::prepareArgs(Location* location)
     - envp is an array of pointers to strings, conventionally of the
     form key=value
 */
-
+#include <stdio.h>
 void CGI::handleChildProcess(void)
 {
     int inputFd, outputFd;
@@ -200,6 +200,7 @@ void CGI::handleChildProcess(void)
     status = execve(args[0], &(args[0]), env);
     if (status == -1)
     {
+        perror(NULL);
         std::cerr << "[Error] : execve() system call failed\n";
         exit(EXIT_FAILURE);
     }

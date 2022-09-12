@@ -375,7 +375,6 @@ void    Response::responsePost(Location * location)
         {
             CGI cgi(request, location);
             cgi.start();
-
             reader.close();
             reader.clear();
             reader.open("resources/cgi.serv", std::ios::in | std::ios::binary | std::ios::ate);
@@ -394,7 +393,7 @@ void    Response::responsePost(Location * location)
                 openFile("resources/cgi.serv");
             else
             {
-                std::cout << tmp << std::endl;
+                // std::cout << tmp << std::endl;
                 size_t endOfLine;
                 std::string header;
                 std::string tmp_key;
@@ -415,11 +414,11 @@ void    Response::responsePost(Location * location)
                     headers.insert(vec_header);//todo: delete
                     tmp.erase(0, endOfLine + 2);
                 }
-                for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-                    std::cout << (*it).first << ": " << (*it).second << std::endl;
+                // for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+                //     std::cout << (*it).first << ": " << (*it).second << std::endl;
                 ofstream o;
                 o.open("resources/cgi.serv", std::ios::out | std::ios::trunc);
-                std::cout << "TMPFILE:\n" << tmpFile << std::endl;
+                // std::cout << "TMPFILE:\n" << tmpFile << std::endl;
                 o.write(tmpFile.data(), tmpFile.length());
                 o.close();
                 openFile("resources/cgi.serv");
