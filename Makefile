@@ -8,7 +8,7 @@ OBJS_DIR = obj
 
 OBJS = $(patsubst %.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
-CFLAGS = -g -MMD -MP -fsanitize=address -Wall -Wextra -Werror
+CFLAGS = -g -MMD -MP -Wall -Wextra -Werror
 
 DEP = $(patsubst %.o,%.d,$(OBJS))
 
