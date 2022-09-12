@@ -45,7 +45,7 @@ Location::Location(map<string, string>& loc) {
         ++it_loc;
     }
 
-	printLocationInfo();
+//	printLocationInfo();
 }
 
 Location::Location(const Location& location) {
