@@ -592,7 +592,6 @@ void    Response::openFile(std::string file)
     reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
     if (reader.fail())
     {
-        std::cout << "Filename is : " << file << std::endl;
         std::cerr << "Open file failure" << std::endl;
         return ; 
     }
