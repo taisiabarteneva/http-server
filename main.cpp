@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 {
 	if (argc != 2)
 	{
-		std::cerr << "Usage:\n\t./run {config__file}.cfg\n";
+		std::cerr << "Usage:\n\t.d/run {config__file}.cfg\n";
 		exit(EXIT_FAILURE); 
 	}
 	Core 	core(argv[1]);

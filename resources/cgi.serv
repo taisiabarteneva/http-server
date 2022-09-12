@@ -1,6 +1,3 @@
-Content-Type: text/html
-Content-Length: 35
-
-<html><body>
-Hello!
-</body></html>
+<html><head></head><body><h2>Hello,
+sdfa
+from Python</h2></body></html>

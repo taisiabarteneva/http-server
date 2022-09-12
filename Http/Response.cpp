@@ -569,6 +569,7 @@ void    Response::getFolders(Location* location)
     o.open("resources/tmpOut.html", std::ios::out | std::ios::trunc);
     o.write(directories.c_str(), directories.length());
     o.write(files.c_str(), files.length());
+    o.clear();
     o.close();
     setCode("200");
     setStatus(statusCodes[200]);
@@ -592,6 +593,7 @@ void Response::recieveDataFromFile()
 
 void    Response::openFile(std::string file)
 {
+    reader.close();
     reader.clear();
     reader.open(file, std::ios::in | std::ios::binary | std::ios::ate);
     if (reader.fail())
