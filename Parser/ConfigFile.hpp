@@ -12,7 +12,6 @@
 #include "ConfigUtils.hpp"
 #include "Location.hpp"
 #include "../Server/Server.hpp"
-// #include "../Core/Core.hpp"
 
 using namespace std;
 
@@ -46,7 +45,6 @@ public:
     bool    checkLocationClosingBracket(ConfigFlags &flags, vector<string> &words,
                                         map<string, string>& config, ConfigFlags& utils_flags);
 	bool    checkIsCgiDir(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
-    bool    checkAuthentication(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
 	bool    checkRedirection(ConfigFlags &flags, vector<string> &words, map<string, string>& config);
 
     Server              createNewServer(string ip_port, vector<Location> locations);
@@ -60,7 +58,6 @@ private:
 	map<string, string>         config_file;
 	ifstream                    file_fd;
 	vector<string>              all_listen;
-    vector<string>              cgi_extension;
 	vector<Location>			all_locations;
     vector<Server>            	all_servers;
 };

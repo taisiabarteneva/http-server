@@ -38,8 +38,6 @@ Location::Location(map<string, string>& loc) {
             cgi_dir = it_loc->second;
         else if (it_loc->first == "allow_methods")
             allow_methods = getTokens(it_loc->second, '/');
-        else if (it_loc->first == "authentication")
-            authentication = it_loc->second;
         else if (it_loc->first == "redirection")
 	        redirection = it_loc->second;
         else
@@ -47,7 +45,7 @@ Location::Location(map<string, string>& loc) {
         ++it_loc;
     }
 
-//	printLocationInfo();
+	printLocationInfo();
 }
 
 Location::Location(const Location& location) {
@@ -68,7 +66,6 @@ Location & Location::operator=(const Location& location) {
         index = location.index;
         allow_methods = location.allow_methods;
         errors = location.errors;
-        authentication = location.authentication;
 		redirection = location.redirection;
     }
     return (*this);
@@ -135,10 +132,6 @@ map<string, string> Location::getErrors() const {
     return errors;
 }
 
-string	Location::getAuthentication() const  {
-    return authentication;
-}
-
 void Location::printLocationInfo() {
 
 	cout << "ip_port: " << ip_port << endl;
@@ -150,7 +143,6 @@ void Location::printLocationInfo() {
 	cout << "autoindex: " << autoindex << endl;
 	cout << "index: " << index << endl;
 	cout << "path: " << path << endl;
-    cout << "authentication: " << authentication << endl;
     cout << "redirection: " << redirection << endl;
 
 	vector<string>::iterator it = allow_methods.begin();
@@ -173,5 +165,5 @@ void Location::printLocationInfo() {
     if (ite != errors.end())
         cout << ite->first << " " << ite->second;
 
-	cout << endl << "done!" << endl << endl;
+	cout << "\n\n";
 }
