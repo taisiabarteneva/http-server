@@ -13,14 +13,18 @@
 # define TMP_FILE           "resources/cgi.serv"
 # define DEFAULT_CGI_DIR    "resources/cgi-bin/"
 
+# define FORBIDDEN              403
+# define INTERNAL_SERVER_ERR    500
+
 class CGI
 {
     private:
-        Request*                     request;
+        Request*                    request;
         std::string                 abs_path;
         char**                      env;
         char**                      args;
         int                         env_len;
+        int                         status;
     
     public:
         CGI();
@@ -29,6 +33,7 @@ class CGI
         const CGI &operator=(const CGI & rhs);
         ~CGI();
         int            start();
+        int            returnStatus(void);
 
     private:
         void            clearArgsArray(void);

@@ -6,6 +6,7 @@ CGI::CGI(Request * req, Location * location)
     char dir[128];
     getcwd(dir, 128);
     abs_path = string(dir);
+    status = 0;
 
     prepareEnv();
     prepareArgs(location);
@@ -22,7 +23,6 @@ const CGI & CGI::operator=(const CGI & rhs)
     char    **tmp_env;
     char    **tmp_arg;
 
-    /* ToDo : check memory leaks */
     if (this != &rhs)
     {
         request = rhs.request;
@@ -55,6 +55,12 @@ CGI::~CGI()
     if (args)
         clearArgsArray();
 };
+
+int            CGI::returnStatus(void)
+{
+    return status;
+}
+
 
 /* --------------------------------------------------------- private */
 void CGI::clearArgsArray(void)
@@ -96,10 +102,6 @@ void    CGI::parseEnvFromRequest(std::vector<std::string> & env)
         }
     }
     env.push_back(envVar);
-    for (std::vector<std::string>::iterator it = env.begin(); it != env.end(); it++)
-    {
-        std::cout << *it << std::endl;
-    }
 }
 
 void up(char & c)
@@ -118,30 +120,25 @@ void    CGI::prepareEnv(void)
     */
 
     parseEnvFromRequest(envs);
+
     /* relative path for the CGI script */
     envs.push_back("PATH_INFO=" + request->getURI());
     /* absolute path for the CGI script */
     envs.push_back("PATH_TRANSLATED=" + abs_path);
-    /* URL-encoded information that is sent with GET method request */
-    // envs.push_back("QUERY_STRING=" + request);
-    /* method used to make the request */
     envs.push_back("REQUEST_METHOD=" + request->getMethod());
     
     std::map<std::string, std::string> headers = request->getHeaders();
     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
     {
         std::string tmp = it->first;
-        for (int i = 0; i < tmp.length(); i++) 
+        for (int i = 0; i < (int)tmp.length(); i++) 
         {
             tmp[i] = std::toupper(tmp[i], std::locale());
         }
-
         tmp += "=";
         tmp += it->second;
         envs.push_back(tmp);
     }
-    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-        std::cout << (*it).first << ": " << (*it).second << std::endl;
     env_len = envs.size() + 1;
     env = new char*[env_len];
     std::vector<std::string>::iterator it = envs.begin(); i = 0;
@@ -164,13 +161,12 @@ void    CGI::prepareArgs(Location* location)
         cgiDir = DEFAULT_CGI_DIR;
     path = abs_path + "/" + cgiDir + scriptFile;
         
-    std::cout << "Path to CGI file is : [ " << path << " ]\n";
-
     args = new char*[2];
     args[0] = new char[path.size() + 1];
     if (access(path.c_str(), X_OK) == 0)        /* X_OK used to check for execute permissions on a file */
         args[0] = strcpy(args[0], path.c_str());
-    // else ?
+    else
+        status = FORBIDDEN;
     args[1] = NULL;
 }
 
@@ -183,16 +179,15 @@ void    CGI::prepareArgs(Location* location)
     - envp is an array of pointers to strings, conventionally of the
     form key=value
 */
-#include <stdio.h>
+
 void CGI::handleChildProcess(void)
 {
-    int inputFd, outputFd;
+    int outputFd;
     int status;
 
     outputFd = open(TMP_FILE, O_RDWR | O_CREAT | O_TRUNC, 0777);
     if (outputFd == -1)
     {
-        perror("open");
         std::cerr << "[Error] : open() system call failed\n";
         exit(EXIT_FAILURE);
     }
@@ -200,7 +195,6 @@ void CGI::handleChildProcess(void)
     status = execve(args[0], &(args[0]), env);
     if (status == -1)
     {
-        perror(NULL);
         std::cerr << "[Error] : execve() system call failed\n";
         exit(EXIT_FAILURE);
     }
@@ -215,7 +209,7 @@ int CGI::start()
     if (pid == -1)
     {
         std::cerr << "[Error] : fork() system call failed\n";
-        exit(EXIT_FAILURE);
+        return INTERNAL_SERVER_ERR;
     }
     else if (pid == 0)
         handleChildProcess();
@@ -225,10 +219,8 @@ int CGI::start()
         if (id == -1)
         {
             std::cerr << "[Error] : waitpid() system call failed\n";
-            exit(EXIT_FAILURE);
+            return INTERNAL_SERVER_ERR;
         }
     }
-    if (WIFEXITED(status))
-        return WEXITSTATUS(status);
     return 0;
 }
