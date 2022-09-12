@@ -103,7 +103,6 @@ bool    Request::multiCheckString(std::string& str)
             multiFlag = true;
             return false;
         }
-        std::cout << "WEBKIT" << std::endl;;
         return true;
     }
     return false;
@@ -116,8 +115,6 @@ void    Request::writeInFile(int begin, int end, std::string fileName)
         multiNewFile = false;
         multiWriter.close();
         multiWriter.open("resources/files/" + fileName, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
-        if (multiWriter.fail())
-            std::cout << "Failed to create output file" << std::endl;
     }
     multiWriter.write(&buffer[begin], end - begin);
     std::flush(multiWriter);
@@ -151,7 +148,6 @@ void    Request::multiGetHeaders(std::string buf, int pos)
     }
     else
         multiFileName = buf.substr(posFileName + 10, buf.substr(buf.find("filename=") + 10).find('\"'));
-    std::cout << multiFileName << std::endl;
 }
 
 void    Request::multiCheckBoundary(int &pos)

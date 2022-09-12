@@ -74,10 +74,8 @@ void Core::runWebServers(void)
 			// std::cerr << "[Error] : poll() system call failed\n";
             exit(EXIT_FAILURE);
 		}
-		// std::cout << "numset : " << numSet << std::endl;
 		for (i = 0; i < numSet; i++)
 		{
-			// std::cout << "numset : " << numSet << std::endl;
             it = std::find(vSocks.begin(), vSocks.end(), activeSet[i].fd);
 			/* for debugging purposes */
 			/* if (activeSet[i].revents != 0) 
@@ -98,7 +96,6 @@ void Core::runWebServers(void)
 			}
 			else if ((activeSet[i].revents & POLLIN || activeSet[i].revents & POLLOUT))
 			{
-				// std::cout << "FD being processed : " << activeSet[i].fd << " i " << i << "\n";
 				handleExistingConnection(activeSet[i], i, toHttp[activeSet[i].fd]);
 			}
 			else

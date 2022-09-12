@@ -413,7 +413,6 @@ void    Response::responsePost(Location * location)
                 }
                 ofstream o;
                 o.open("resources/cgi.serv", std::ios::out | std::ios::trunc);
-                // std::cout << "TMPFILE:\n" << tmpFile << std::endl;
                 o.write(tmpFile.data(), tmpFile.length());
                 o.close();
                 openFile("resources/cgi.serv");
